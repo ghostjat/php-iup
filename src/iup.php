@@ -73,7 +73,10 @@ class core {
     public function iupSetAttribute($ih, $name, $vale) {
         return $this->ffi->IupSetAttribute($ih, $name, $vale);
     }
-
+    
+    public function iupSetAttributeHandle($ih, $name, $ih_named){
+        return $this->ffi->IupSetAttributeHandle($ih, $name, $ih_named);
+    }
     public function iupShowXY($ih, $x, $y) {
         return $this->ffi->IupShowXY($ih, $x, $y);
     }
@@ -101,7 +104,10 @@ class core {
     public function iupCallback($ih, $name, $func) {
         return $this->ffi->IupSetCallback($ih, $name, $func);
     }
-
+    
+    public function iupSetCallback($ih, $name, $func) {
+        return $this->ffi->IupSetCallback($ih, $name, $func);
+    }
     /**
      * 
      * @param string $label
@@ -249,7 +255,7 @@ class core {
         return $this->ffi->IupImageRGBA($width, $height, $pixmap);
     }
 
-    public function iupItem($title, $action) {
+    public function iupItem($title, $action=null) {
         return $this->ffi->IupItem($title, $action);
     }
 
@@ -262,7 +268,7 @@ class core {
     }
 
     public function iupMenu($child) { //todo
-        return $this->ffi->IupMenu($child);
+        return $this->ffi->IupMenu($child,null);
     }
 
     public function iupMenuV($children) {

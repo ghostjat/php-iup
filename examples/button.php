@@ -1,14 +1,11 @@
 <?php
 
-require 'vendor/autoload.php';
+require __DIR__.'/../vendor/autoload.php';
 
 use iup\core;
 
 $iup = new core();
 $iup->init();
-$iup->iupVersion();
-
-$label = $iup->iupLabel(phpversion());
 
 $btn = $iup->iupButton('Click To Exit', null);
 $iup->iupCallback($btn, "ACTION", 'exit_btn');
