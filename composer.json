@@ -1,0 +1,8 @@
+{
+    "name": "ghost/iup",
+    "autoload": {
+        "psr-4": {
+            "iup\\": "src"
+        }
+    }
+}
