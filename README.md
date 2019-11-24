@@ -1,6 +1,6 @@
 # php-iup
 php-ffi experiment
-PHP7.4 IUP ![IUP Logo](logotype/logo_32x32.png)
+PHP7.4 IUP ![IUP Logo](logo_32x32.png)
 =========
 php7.4 interface to the IUP toolkit for building GUI's.
 
