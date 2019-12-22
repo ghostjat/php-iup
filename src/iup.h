@@ -1,136 +1,13 @@
 #define FFI_SCOPE "iup"
 #define FFI_LIB "dll_libs/iup/iup.dll"
 
-/************************************************************************/
-/*                   Common Flags and Return Values                     */
-/************************************************************************/
-#define IUP_ERROR     1
-#define IUP_NOERROR   0
-#define IUP_OPENED   -1
-#define IUP_INVALID  -1
-#define IUP_INVALID_ID -10
-
-
-/************************************************************************/
-/*                   Callback Return Values                             */
-/************************************************************************/
-#define IUP_IGNORE    -1
-#define IUP_DEFAULT   -2
-#define IUP_CLOSE     -3
-#define IUP_CONTINUE  -4
-
-/************************************************************************/
-/*           IupPopup and IupShowXY Parameter Values                    */
-/************************************************************************/
-#define IUP_CENTER        0xFFFF  /* 65535 */
-#define IUP_LEFT          0xFFFE  /* 65534 */
-#define IUP_RIGHT         0xFFFD  /* 65533 */
-#define IUP_MOUSEPOS      0xFFFC  /* 65532 */
-#define IUP_CURRENT       0xFFFB  /* 65531 */
-#define IUP_CENTERPARENT  0xFFFA  /* 65530 */
-#define IUP_TOP       IUP_LEFT
-#define IUP_BOTTOM    IUP_RIGHT
-
-/************************************************************************/
-/*               SHOW_CB Callback Values                                */
-
-/************************************************************************/
-enum {
-    IUP_SHOW, IUP_RESTORE, IUP_MINIMIZE, IUP_MAXIMIZE, IUP_HIDE
-};
-
-/************************************************************************/
-/*               SCROLL_CB Callback Values                              */
-
-/************************************************************************/
-enum {
-    IUP_SBUP, IUP_SBDN, IUP_SBPGUP, IUP_SBPGDN, IUP_SBPOSV, IUP_SBDRAGV,
-    IUP_SBLEFT, IUP_SBRIGHT, IUP_SBPGLEFT, IUP_SBPGRIGHT, IUP_SBPOSH, IUP_SBDRAGH
-};
-
-/************************************************************************/
-/*               Mouse Button Values and Macros                         */
-/************************************************************************/
-#define IUP_BUTTON1   '1'
-#define IUP_BUTTON2   '2'
-#define IUP_BUTTON3   '3'
-#define IUP_BUTTON4   '4'
-#define IUP_BUTTON5   '5'
-
-#define iup_isshift(_s)    (_s[0]=='S')
-#define iup_iscontrol(_s)  (_s[1]=='C')
-#define iup_isbutton1(_s)  (_s[2]=='1')
-#define iup_isbutton2(_s)  (_s[3]=='2')
-#define iup_isbutton3(_s)  (_s[4]=='3')
-#define iup_isdouble(_s)   (_s[5]=='D')
-#define iup_isalt(_s)      (_s[6]=='A')
-#define iup_issys(_s)      (_s[7]=='Y')
-#define iup_isbutton4(_s)  (_s[8]=='4')
-#define iup_isbutton5(_s)  (_s[9]=='5')
-
-/* Old definitions for backward compatibility */
-#define isshift     iup_isshift
-#define iscontrol   iup_iscontrol
-#define isbutton1   iup_isbutton1
-#define isbutton2   iup_isbutton2
-#define isbutton3   iup_isbutton3
-#define isdouble    iup_isdouble
-#define isalt       iup_isalt
-#define issys       iup_issys
-#define isbutton4   iup_isbutton4
-#define isbutton5   iup_isbutton5
-
-
-/************************************************************************/
-/*                      Pre-Defined Masks                               */
-/************************************************************************/
-#define IUP_MASK_FLOAT       "[+/-]?(/d+/.?/d*|/./d+)"
-#define IUP_MASK_UFLOAT            "(/d+/.?/d*|/./d+)"
-#define IUP_MASK_EFLOAT      "[+/-]?(/d+/.?/d*|/./d+)([eE][+/-]?/d+)?"
-#define IUP_MASK_UEFLOAT           "(/d+/.?/d*|/./d+)([eE][+/-]?/d+)?"
-#define IUP_MASK_FLOATCOMMA  "[+/-]?(/d+/,?/d*|/,/d+)"
-#define IUP_MASK_UFLOATCOMMA       "(/d+/,?/d*|/,/d+)"
-#define IUP_MASK_INT          "[+/-]?/d+"
-#define IUP_MASK_UINT               "/d+"
-
-/* Old definitions for backward compatibility */
-#define IUPMASK_FLOAT     IUP_MASK_FLOAT
-#define IUPMASK_UFLOAT    IUP_MASK_UFLOAT
-#define IUPMASK_EFLOAT    IUP_MASK_EFLOAT
-#define IUPMASK_INT       IUP_MASK_INT
-#define IUPMASK_UINT      IUP_MASK_UINT
-
-
-/************************************************************************/
-/*                   IupGetParam Callback situations                    */
-/************************************************************************/
-#define IUP_GETPARAM_BUTTON1 -1
-#define IUP_GETPARAM_INIT    -2
-#define IUP_GETPARAM_BUTTON2 -3
-#define IUP_GETPARAM_BUTTON3 -4
-#define IUP_GETPARAM_CLOSE   -5
-#define IUP_GETPARAM_MAP     -6
-#define IUP_GETPARAM_OK     IUP_GETPARAM_BUTTON1
-#define IUP_GETPARAM_CANCEL IUP_GETPARAM_BUTTON2
-#define IUP_GETPARAM_HELP   IUP_GETPARAM_BUTTON3
-
-/************************************************************************/
-/*                   Used by IupColorbar                                */
-/************************************************************************/
-#define IUP_PRIMARY -1
-#define IUP_SECONDARY -2
-
-/************************************************************************/
-/*                   Record Input Modes                                 */
-
-/************************************************************************/
 enum {
     IUP_RECBINARY, IUP_RECTEXT
 };
 
-
 typedef struct Ihandle_ Ihandle;
 typedef int (*Icallback)(Ihandle*);
+typedef int (*Iparamcb) (Ihandle* dialog, int param_index,void* user_data);
 
 extern int IupOpen(int *argc, char ***argv);
 //void IupImageLibOpen(void);
@@ -245,7 +122,7 @@ extern void IupGetRGBId2(Ihandle* ih, const char* name, int lin, int col, unsign
 
 extern void IupSetGlobal(const char* name, const char* value);
 extern void IupSetStrGlobal(const char* name, const char* value);
-extern char* IupGetGlobal(const char* name);
+extern char* IupGetGlobal(Ihandle* ih,const char* name);
 
 extern Ihandle* IupSetFocus(Ihandle* ih);
 extern Ihandle* IupGetFocus(void);
@@ -422,7 +299,6 @@ extern int IupListDialog(int type, const char *title, int size, const char** lis
 extern int IupGetText(const char* title, char* text, int maxsize);
 extern int IupGetColor(int x, int y, unsigned char* r, unsigned char* g, unsigned char* b);
 
-typedef int (*Iparamcb)(Ihandle* dialog, int param_index, void* user_data);
 extern int IupGetParam(const char* title, Iparamcb action, void* user_data, const char* format, ...);
 extern int IupGetParamv(const char* title, Iparamcb action, void* user_data, const char* format, int param_count, int param_extra, void** param_data);
 extern Ihandle* IupParam(const char* format);
@@ -432,3 +308,4 @@ extern Ihandle* IupParamBoxv(Ihandle* *param_array);
 extern Ihandle* IupLayoutDialog(Ihandle* dialog);
 extern Ihandle* IupElementPropertiesDialog(Ihandle* elem);
 extern Ihandle* IupGlobalsDialog(void);
+
