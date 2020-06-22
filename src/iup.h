@@ -1,5 +1,5 @@
 #define FFI_SCOPE "iup"
-#define FFI_LIB "dll_libs/iup/iup.dll"
+#define FFI_LIB "/usr/lib/libiup.so"
 
 enum {
     IUP_RECBINARY, IUP_RECTEXT

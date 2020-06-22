@@ -24,10 +24,10 @@ The interface is not final and may change in the future.
 Sample GUI:
 
 <p align="center">
- <img src ="https://raw.github.com/ghostjat/php-iup/master/examples/php-iup.png" alt ="php-iup"/>
-  <img src ="https://raw.github.com/ghostjat/php-iup/master/examples/cbox.png" alt ="cbox"/>
- <img src ="https://raw.github.com/ghostjat/php-iup/master/examples/scintilla.png" alt ="Scintilla"/>
-<img src="https://raw.github.com/ghostjat/php-iup/master/examples/menu.jpg" alt="Hello World IUP Application"/>
+ <img src ="https://raw.github.com/ghostjat/php-iup/master/test/php-iup.png" alt ="php-iup"/>
+  <img src ="https://raw.github.com/ghostjat/php-iup/master/test/cbox.png" alt ="cbox"/>
+ <img src ="https://raw.github.com/ghostjat/php-iup/master/test/scintilla.png" alt ="Scintilla"/>
+<img src="https://raw.github.com/ghostjat/php-iup/master/test/menu.jpg" alt="Hello World IUP Application"/>
 </p>
 
 Sample code:

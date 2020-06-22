@@ -2,31 +2,28 @@
 require __DIR__.'/../vendor/autoload.php';
 
 
-use iup\scintilla;
-
-$scn = new scintilla();
-$scn->ImageLibOpen();
-$scn->scintillaOpen();
+$iup = new iup\core();
+$scn = new iup\scintilla();
 
 $main_dlg = $scn->ScintillaDlg();
-$scn->SetAttribute($main_dlg, "TITLE", "php-IDE");
-$scn->SetAttribute($main_dlg, "SIZE", "900x400");
-$menu = $scn->GetAttributeHandle($main_dlg, "MENU");
-$scn->Append($menu, $scn->SubMenu(
-        "&Help", $scn->ffi->IupMenu(
-                $scn->SetCallbacks(
-                        $scn->Item("&Help..."), "ACTION", "item_help_action_cb",null),
-                $scn->SetCallbacks(
-                        $scn->Item("&About..."), "ACTION", "item_about_action_cb", null)
+$iup->setAttribute($main_dlg, "TITLE", "php-IDE");
+#$scn->SetAttribute($main_dlg, "SIZE", "900x400");
+$menu = $iup->getAttributeHandle($main_dlg, "MENU");
+$iup->append($menu, $iup->subMenu(
+        "&Help", $iup->ffi_iup->IupMenu(
+                $iup->setCallbacks(
+                        $iup->item("&Help..."), "ACTION", "item_help_action_cb",null),
+                $iup->setCallbacks(
+                        $iup->item("&About..."), "ACTION", "item_about_action_cb", null)
                 ,null)));
-$scn->SetAttribute($main_dlg, "NEWFILE", null);
+$iup->setAttribute($main_dlg, "NEWFILE", null);
 if($argc > 1 && $argv[1]){
     $filename = $argv[1];
-    $scn->SetAttribute($main_dlg, "OPENFILE", $filename);
+    $iup->setAttribute($main_dlg, "OPENFILE", $filename);
 }
-$scn->Show($main_dlg);
-$scn->MainLoop();
-$scn->close();
+$iup->show($main_dlg);
+$iup->mainLoop();
+$iup->close();
 
 function item_help_action_cb(){
     global $scn;

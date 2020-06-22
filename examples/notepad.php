@@ -5,19 +5,18 @@ require __DIR__.'/../vendor/autoload.php';
 use iup\core;
 
 $iup = new core();
-$iup->init();
 
-$multiText = $iup->Text(null);
-$vbox = $iup->Vbox($multiText);
+$multiText = $iup->text(null);
+$vbox = $iup->vbox($multiText);
 
-$iup->SetAttribute($multiText, "MULTILINE", "YES");
-$iup->SetAttribute($multiText, "EXPAND", "YES");
+$iup->setAttribute($multiText, "MULTILINE", "YES");
+$iup->setAttribute($multiText, "EXPAND", "YES");
 
-$dlg = $iup->Dialog($vbox);
-$iup->SetAttribute($dlg, 'TITLE', 'php-iup');
-$iup->SetAttribute($dlg, 'SIZE', 'QUARTERxQUARTER');
+$dlg = $iup->dialog($vbox);
+$iup->setAttribute($dlg, 'TITLE', 'php-iup');
+$iup->setAttribute($dlg, 'SIZE', 'QUARTERxQUARTER');
 
-$iup->ShowXY($dlg, $iup::CENTER, $iup::CENTER);
-$iup->SetAttribute($dlg, 'USERSIZE', null);
-$iup->MainLoop();
+$iup->showXY($dlg, $iup::CENTER, $iup::CENTER);
+$iup->setAttribute($dlg, 'USERSIZE', null);
+$iup->mainLoop();
 $iup->close();

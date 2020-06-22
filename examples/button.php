@@ -5,22 +5,21 @@ require __DIR__.'/../vendor/autoload.php';
 use iup\core;
 
 $iup = new core();
-$iup->init();
 
-$btn = $iup->Button('Click To Exit', null);
+$btn = $iup->button('Click To Exit', null);
 
-$iup->Callback($btn, "ACTION", 'exit_btn');
+$iup->callback($btn, "ACTION", 'exit_btn');
 
-$vbox = $iup->Vbox($btn);
-$iup->SetAttribute($vbox, "ALIGNMENT", "ACENTER");
-$iup->SetAttribute($vbox, "GAP", "10");
-$iup->SetAttribute($vbox, "MARGIN", "10x10");
+$vbox = $iup->vbox($btn);
+$iup->setAttribute($vbox, "ALIGNMENT", "ACENTER");
+$iup->setAttribute($vbox, "GAP", "10");
+$iup->setAttribute($vbox, "MARGIN", "10x10");
 
-$dlg = $iup->Dialog($vbox);
+$dlg = $iup->dialog($vbox);
 
-$iup->SetAttribute($dlg, 'TITLE', 'php-iup');
-$iup->ShowXY($dlg, $iup::CENTER, $iup::CENTER);
-$iup->MainLoop();
+$iup->setAttribute($dlg, 'TITLE', 'php-iup');
+$iup->showXY($dlg, $iup::CENTER, $iup::CENTER);
+$iup->mainLoop();
 $iup->close();
 
 function exit_btn() {

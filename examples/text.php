@@ -1,55 +1,49 @@
 <?php
 
-require __DIR__.'/../vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
 
-use iup\core;
 
-$iup = new core();
-$iup->init();
-$password = [];
-function k_any($c){
-    global $iup,$password,$pwd;
-    switch ($c){
-  case $iup::K_BS:
-    {
-      $size = strlen($password);
-      if ($size == 0) {
+$iup = new iup\core();
+
+function k_any($c) {
+    global $iup, $pwd;
+    switch ($c) {
+        case $iup::K_BS: {
+                $size = strlen($iup);
+                if ($size == 0) {
                     return $iup::IGNORE;
                 }
-                $password[$size-1] = 0;
-      $iup->SetAttribute($pwd, "VALUE", $password);
-      return $iup::DEFAULT;
+                $password[$size - 1] = 0;
+                $iup->setValue($pwd,$password);
+                return $iup::DEFAULT;
+            }
+        default:
+            return $iup::DEFAULT;
     }
-  default:
-    return $iup::DEFAULT;
-  }
 }
 
-function action($c) {
-    global $iup,$password,$pwd;
-    print_r($c); exit;
-    if ($c) {
-    $size = strlen($password);
-    $password[$size] = $c;
-    $password[$size+1] = 0;
-    $iup->SetAttribute($pwd, "VALUE", $password);
-  }
-  #return K_asterisk;
+function action($ih) {
+    global $iup, $pwd;
+    $password = $iup->getValue($ih);
+    $iup->setValue($pwd, $password);
+
+    #return K_asterisk;
 }
 
-  $text = $iup->Text();
-  $iup->SetAttribute($text, "SIZE",  "200x");
-  $iup->SetCallback($text, "ACTION", 'action');
-  $iup->SetCallback($text, "K_ANY", 'k_any');
+$text = $iup->text();
+$iup->setSize($text, "200x");
 
-  $pwd = $iup->Text();
-  $iup->SetAttribute($pwd, "READONLY", "YES");
-  $iup->SetAttribute($pwd, "SIZE", "200x");
+$iup->setCallback($text, "ACTION", 'action');
+$iup->setCallback($text, "K_ANY", 'k_any');
 
-  $dlg = $iup->Dialog($iup->ffi->IupVbox($text, $pwd, NULL));
-  $iup->SetAttribute($dlg, "TITLE", "IupText");
+$pwd = $iup->text();
+$iup->setAttribute($pwd, "READONLY", "YES");
+$iup->setSize($pwd, "200x");
 
-  $iup->Show($dlg);
+$dlg = $iup->dialog($iup->ffi_iup->IupVbox($text, $pwd, NULL));
+$iup->setTitle($dlg, "IupText");
 
-  $iup->MainLoop();
-  $iup->Close();
+$iup->show($dlg);
+
+$iup->mainLoop();
+$iup->close();

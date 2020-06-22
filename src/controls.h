@@ -1,8 +1,8 @@
 #define FFI_SCOPE "iupControls"
-#define FFI_LIB "dll_libs/iup/iupcontrols.dll"
+#define FFI_LIB "/usr/lib/libiupcontrols.so"
 
 typedef struct Ihandle_ Ihandle;
-typedef int (*Icallback)(Ihandle*);
+//typedef int (*Icallback)(Ihandle*);
 
 int  IupControlsOpen(void);
 

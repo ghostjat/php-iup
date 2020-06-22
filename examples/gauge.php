@@ -125,118 +125,117 @@ $pixmap_show = [
     , 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
 
 $iup = new iup\core();
-$iup->init();
 $extra = new iup\extra();
-$extra->init();
 
-$gauge = $iup->Gauge();
+$gauge = $iup->gauge();
 
-$iup->SetAttribute($gauge, "EXPAND", "YES");
-//  $iup->SetAttribute(gauge,"MAX","3.5");
-//  $iup->SetAttribute(gauge,"MIN","0.7");
+$iup->setAttribute($gauge, "EXPAND", "YES");
+//  $iup->setAttribute(gauge,"MAX","3.5");
+//  $iup->setAttribute(gauge,"MIN","0.7");
 
-$btn_start = $iup->Button("start", "btn_start_act");
-$btn_pause = $iup->Button("pause", "btn_pause_act");
-$btn_accelerate = $iup->Button("accelerate", "btn_accelerate_act");
-$btn_decelerate = $iup->Button("decelerate", "btn_decelerate_act");
-$btn_show = $iup->Button("show", "btn_show_act");
+$btn_start = $iup->button("start", "btn_start_act");
+$btn_pause = $iup->button("pause", "btn_pause_act");
+$btn_accelerate = $iup->button("accelerate", "btn_accelerate_act");
+$btn_decelerate = $iup->button("decelerate", "btn_decelerate_act");
+$btn_show = $iup->button("show", "btn_show_act");
 
 createimg_s();
 
-$iup->SetAttributes($btn_start, "IMAGE = img_start, TIP = Start");
-$iup->SetAttributes($btn_pause, "IMAGE = img_play, TIP = Pause");
-$iup->SetAttributes($btn_accelerate, "IMAGE = img_forward, TIP = Accelerate");
-$iup->SetAttributes($btn_decelerate, "IMAGE = img_rewind, TIP = Decelerate");
-$iup->SetAttributes($btn_show, "IMAGE = img_show, TIP = Show");
+$iup->setAttributes($btn_start, "IMAGE = img_start, TIP = Start");
+$iup->setAttributes($btn_pause, "IMAGE = img_play, TIP = Pause");
+$iup->setAttributes($btn_accelerate, "IMAGE = img_forward, TIP = Accelerate");
+$iup->setAttributes($btn_decelerate, "IMAGE = img_rewind, TIP = Decelerate");
+$iup->setAttributes($btn_show, "IMAGE = img_show, TIP = Show");
 
-$hbox = $iup->ffi->IupHbox
+$hbox = $iup->ffi_iup->IupHbox
         (
-        $iup->Fill(),
+        $iup->fill(),
         $btn_pause,
         $btn_start,
         $btn_decelerate,
         $btn_accelerate,
         $btn_show,
-        $iup->Fill(),
+        $iup->fill(),
         NULL
 );
 
-$vbox = $iup->ffi->IupVbox($gauge, $hbox, NULL);
-$iup->SetAttribute($vbox, "MARGIN", "10x10");
-$iup->SetAttribute($vbox, "GAP", "5");
+$vbox = $iup->ffi_iup->IupVbox($gauge, $hbox, NULL);
+$iup->setAttribute($vbox, "MARGIN", "10x10");
+$iup->setAttribute($vbox, "GAP", "5");
 
-$dlg = $iup->Dialog($vbox);
+$dlg = $iup->dialog($vbox);
 
-$iup->SetAttributes($dlg, "TITLE=IupGauge");
+$iup->setAttributes($dlg, "TITLE=IupGauge");
 
-$iup->SetCallback($btn_pause, "ACTION", 'btn_pause_cb');
-$iup->SetCallback($btn_start, "ACTION", 'btn_start_cb');
-$iup->SetCallback($btn_accelerate, "ACTION", 'btn_accelerate_cb');
-$iup->SetCallback($btn_decelerate, "ACTION", 'btn_decelerate_cb');
-$iup->SetCallback($btn_show, "ACTION", 'btn_show_cb');
+$iup->setCallback($btn_pause, "ACTION", 'btn_pause_cb');
+$iup->setCallback($btn_start, "ACTION", 'btn_start_cb');
+$iup->setCallback($btn_accelerate, "ACTION", 'btn_accelerate_cb');
+$iup->setCallback($btn_decelerate, "ACTION", 'btn_decelerate_cb');
+$iup->setCallback($btn_show, "ACTION", 'btn_show_cb');
 
-$iup->SetFunction("IDLE_ACTION", 'idle_cb');
+$iup->setFunction("IDLE_ACTION", 'idle_cb');
 
-$iup->Show($dlg);
-$iup->MainLoop();
-$iup->Close();
+$iup->show($dlg);
+$iup->mainLoop();
+$iup->close();
 
 function createimg_s() {
     global $iup, $pixmap_play, $pixmap_start, $pixmap_rewind, $pixmap_forward, $pixmap_show;
 
-    $img_start = $iup->Image(22, 22, $pixmap_start);
-    $img_play = $iup->Image(22, 22, $pixmap_play);
-    $img_forward = $iup->Image(22, 22, $pixmap_forward);
-    $img_rewind = $iup->Image(22, 22, $pixmap_rewind);
-    $img_show = $iup->Image(22, 22, $pixmap_show);
+    $img_start = $iup->image(22, 22, $pixmap_start);
+    $img_play = $iup->image(22, 22, $pixmap_play);
+    $img_forward = $iup->image(22, 22, $pixmap_forward);
+    $img_rewind = $iup->image(22, 22, $pixmap_rewind);
+    $img_show = $iup->image(22, 22, $pixmap_show);
 
-    $iup->SetHandle("img_start", $img_start);
-    $iup->SetHandle("img_play", $img_play);
-    $iup->SetHandle("img_forward", $img_forward);
-    $iup->SetHandle("img_rewind", $img_rewind);
-    $iup->SetHandle("img_show", $img_show);
+    $iup->setHandle("img_start", $img_start);
+    $iup->setHandle("img_play", $img_play);
+    $iup->setHandle("img_forward", $img_forward);
+    $iup->setHandle("img_rewind", $img_rewind);
+    $iup->setHandle("img_show", $img_show);
 
-    $iup->SetAttribute($img_start, "1", "0 0 0");
-    $iup->SetAttribute($img_start, "2", "BGCOLOR");
-    $iup->SetAttribute($img_play, "1", "0 0 0");
-    $iup->SetAttribute($img_play, "2", "BGCOLOR");
-    $iup->SetAttribute($img_forward, "1", "0 0 0");
-    $iup->SetAttribute($img_forward, "2", "BGCOLOR");
-    $iup->SetAttribute($img_rewind, "1", "0 0 0");
-    $iup->SetAttribute($img_rewind, "2", "BGCOLOR");
-    $iup->SetAttribute($img_show, "1", "0 0 0");
-    $iup->SetAttribute($img_show, "2", "BGCOLOR");
+    $iup->setAttribute($img_start, "1", "0 0 0");
+    $iup->setAttribute($img_start, "2", "BGCOLOR");
+    $iup->setAttribute($img_play, "1", "0 0 0");
+    $iup->setAttribute($img_play, "2", "BGCOLOR");
+    $iup->setAttribute($img_forward, "1", "0 0 0");
+    $iup->setAttribute($img_forward, "2", "BGCOLOR");
+    $iup->setAttribute($img_rewind, "1", "0 0 0");
+    $iup->setAttribute($img_rewind, "2", "BGCOLOR");
+    $iup->setAttribute($img_show, "1", "0 0 0");
+    $iup->setAttribute($img_show, "2", "BGCOLOR");
 }
 
 function idle_cb() {
     global $iup, $gauge, $speed;
-    print $value = $iup->GetFloat($gauge, "VALUE");
+    $value = $iup->getFloat($gauge, "VALUE");
 
     $value += $speed;
 
-    if ($value > $iup->GetFloat($gauge, "MAX")) {
-        $value = $iup->GetFloat($gauge, "MIN");
+    if ($value > $iup->getFloat($gauge, "MAX")) {
+        $value = $iup->getFloat($gauge, "MIN");
     }
 
-    $iup->SetAttribute($gauge, "VALUE", sprintf("%.7f", $value));
+    $iup->setAttribute($gauge, "VALUE", sprintf("%.7f", $value));
 
     return $iup::DEFAULT;
 }
 
 function btn_pause_cb() {
-    global $iup;
-    if (!$iup->GetFunction("IDLE_ACTION")) {
-        $iup->SetFunction("IDLE_ACTION", 'idle_cb');
+    global $iup, $gauge;
+    
+    if (!$iup->getCallback($gauge,"IDLE_ACTION")) {
+        $iup->setCallback($gauge,"IDLE_ACTION", 'idle_cb');
     } else {
-        $iup->SetFunction("IDLE_ACTION", NULL);
+        $iup->setCallback($gauge,"IDLE_ACTION", NULL);
     }
-
+    
     return $iup::DEFAULT;
 }
 
 function btn_start_cb() {
     global $iup, $gauge;
-    $iup->SetAttribute($gauge, "VALUE", $iup->GetAttribute($gauge, "MIN"));
+    $iup->setAttribute($gauge, "VALUE", $iup->getAttribute($gauge, "MIN"));
     return $iup::DEFAULT;
 }
 
@@ -257,12 +256,12 @@ function btn_decelerate_cb() {
 
 function btn_show_cb() {
     global $iup, $gauge;
-    if (!$iup->GetInt($gauge, "SHOWTEXT")) {
-        $iup->SetAttribute($gauge, "SHOWTEXT", "YES");
-        $iup->SetAttribute($gauge, "DASHED", "NO");
+    if (!$iup->getInt($gauge, "SHOWTEXT")) {
+        $iup->setAttribute($gauge, "SHOWTEXT", "YES");
+        $iup->setAttribute($gauge, "DASHED", "NO");
     } else {
-        $iup->SetAttribute($gauge, "SHOWTEXT", "NO");
-        $iup->SetAttribute($gauge, "DASHED", "YES");
+        $iup->setAttribute($gauge, "SHOWTEXT", "NO");
+        $iup->setAttribute($gauge, "DASHED", "YES");
     }
 
     return $iup::DEFAULT;

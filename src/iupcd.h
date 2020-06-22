@@ -1,5 +1,5 @@
 #define FFI_SCOPE "iupcd"
-#define FFI_LIB "dll_libs/iup/iupcd.dll"
+#define FFI_LIB "/usr/lib/libiupcd.so"
 
 typedef struct Ihandle_ Ihandle;
 typedef int (*Icallback)(Ihandle*);

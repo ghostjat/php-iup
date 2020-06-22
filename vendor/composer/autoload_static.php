@@ -21,7 +21,14 @@ class ComposerStaticInitd08e03bd556634e2d895998546342052
     );
 
     public static $classMap = array (
+        'iup\\canvas' => __DIR__ . '/../..' . '/src/iup.php',
+        'iup\\cd' => __DIR__ . '/../..' . '/src/iup.php',
         'iup\\core' => __DIR__ . '/../..' . '/src/iup.php',
+        'iup\\extra' => __DIR__ . '/../..' . '/src/iup.php',
+        'iup\\im' => __DIR__ . '/../..' . '/src/iup.php',
+        'iup\\image' => __DIR__ . '/../..' . '/src/iup.php',
+        'iup\\scintilla' => __DIR__ . '/../..' . '/src/iup.php',
+        'iup\\webView' => __DIR__ . '/../..' . '/src/iup.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

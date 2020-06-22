@@ -5,31 +5,30 @@ require __DIR__.'/../vendor/autoload.php';
 use iup\core;
 
 $iup = new core();
-$iup->init();
 
-$item_open = $iup->Item("Open");
-$item_saveAs = $iup->Item("Save As");
-$item_exit = $iup->Item("Exit");
-$iup->SetCallback($item_exit, "ACTION", 'exit_cb');
+$item_open = $iup->item("Open");
+$item_saveAs = $iup->item("Save As");
+$item_exit = $iup->item("Exit");
+$iup->setCallback($item_exit, "ACTION", 'exit_cb');
 
-$file_menu = $iup->ffi->IupMenu($item_open,$item_saveAs,$item_exit, null);
-$sub_menu1 = $iup->SubMenu("File", $file_menu);
-$menu = $iup->Menu($sub_menu1);
+$file_menu = $iup->ffi_iup->IupMenu($item_open,$item_saveAs,$item_exit, null);
+$sub_menu1 = $iup->subMenu("File", $file_menu);
+$menu = $iup->menu($sub_menu1);
 
-$multiText = $iup->Text(null);
-$vbox = $iup->Vbox($multiText);
+$multiText = $iup->text(null);
+$vbox = $iup->vbox($multiText);
 
-$iup->SetAttribute($multiText, "MULTILINE", "YES");
-$iup->SetAttribute($multiText, "EXPAND", "YES");
+$iup->setAttribute($multiText, "MULTILINE", "YES");
+$iup->setAttribute($multiText, "EXPAND", "YES");
 
-$dlg = $iup->Dialog($vbox);
-$iup->SetAttributeHandle($dlg, "MENU", $menu);
-$iup->SetAttribute($dlg, 'TITLE', 'php-iup');
-$iup->SetAttribute($dlg, 'SIZE', 'QUARTERxQUARTER');
+$dlg = $iup->dialog($vbox);
+$iup->setAttributeHandle($dlg, "MENU", $menu);
+$iup->setAttribute($dlg, 'TITLE', 'php-iup');
+$iup->setAttribute($dlg, 'SIZE', 'QUARTERxQUARTER');
 
-$iup->ShowXY($dlg, $iup::CENTER, $iup::CENTER);
-$iup->SetAttribute($dlg, 'USERSIZE', null);
-$iup->MainLoop();
+$iup->showXY($dlg, $iup::CENTER, $iup::CENTER);
+$iup->setAttribute($dlg, 'USERSIZE', null);
+$iup->mainLoop();
 $iup->close();
 
 function exit_cb() {

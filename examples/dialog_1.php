@@ -40,37 +40,37 @@ $img = [
 ];
 
 $iup = new core();
-$iup->init();
-
-$icon = $iup->Image(32, 32, $img);
-$iup->SetAttribute($icon, "1", "255 255 255");
-$iup->SetAttribute($icon, "2", "000 000 000");
-$iup->SetAttribute($icon, "3", "226 226 226");
-$iup->SetAttribute($icon, "4", "128 128 128");
-$iup->SetAttribute($icon, "5", "192 192 192");
-$iup->SetAttribute($icon, "6", "000 000 255");
-$iup->SetHandle("icon", $icon);
-
-$quit_btn = $iup->Button('quit');
-$iup->SetCallback($quit_btn, "ACTION", "quit_cb");
-$iup->SetHandle("quit", $quit_btn);
-
-$options = $iup->Menu($iup->ffi->IupItem("Exit", "quit_cb"));
-$submenu = $iup->Submenu("File", $options);
-$menu = $iup->Menu($submenu);
-$iup->SetHandle("menu", $menu);
 
 
-$dialog = $iup->Dialog($iup->Vbox($quit_bt));
-$iup->SetAttribute($dialog, "TITLE", "IupDialog");
-$iup->SetAttribute($dialog, "MENU", "menu");
-$iup->SetAttribute($dialog, "CURSOR", "CROSS");
-$iup->SetAttribute($dialog, "ICON", "icon");
-$iup->SetAttribute($dialog, "DEFAULTESC", "quit");
+$icon = $iup->image(32, 32, $img);
+$iup->setAttribute($icon, "1", "255 255 255");
+$iup->setAttribute($icon, "2", "000 000 000");
+$iup->setAttribute($icon, "3", "226 226 226");
+$iup->setAttribute($icon, "4", "128 128 128");
+$iup->setAttribute($icon, "5", "192 192 192");
+$iup->setAttribute($icon, "6", "000 000 255");
+$iup->setHandle("icon", $icon);
 
-$iup->Show($dialog);
-$iup->MainLoop();
-$iup->Close();
+$quit_btn = $iup->button('quit');
+$iup->setCallback($quit_btn, "ACTION", "quit_cb");
+$iup->setHandle("quit", $quit_btn);
+
+$options = $iup->menu($iup->ffi_iup->IupItem("Exit", "quit_cb"));
+$submenu = $iup->submenu("File", $options);
+$menu = $iup->menu($submenu);
+$iup->setHandle("menu", $menu);
+
+
+$dialog = $iup->dialog($iup->vbox($quit_bt));
+$iup->setAttribute($dialog, "TITLE", "IupDialog");
+$iup->setAttribute($dialog, "MENU", "menu");
+$iup->setAttribute($dialog, "CURSOR", "CROSS");
+$iup->setAttribute($dialog, "ICON", "icon");
+$iup->setAttribute($dialog, "DEFAULTESC", "quit");
+
+$iup->show($dialog);
+$iup->mainLoop();
+$iup->close();
 
 function quit_cb(){
     global $iup;

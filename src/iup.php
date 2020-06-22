@@ -1,9 +1,20 @@
 <?php
 
+
 namespace iup;
 
 use FFI;
- 
+
+if (!extension_loaded("FFI")) {
+    die("FFI extension required\n");
+}
+
+/**
+ * @package php-iup
+ * @author Shubham Chaudhary <ghost.jat@gmail.com>
+ * @copyright (c) 2019,2020, Shubham Chaudhary
+ * @todo callbacks
+ */
 class core {
 
     const K_SP = ' ';   /* 32 (0x20) */
@@ -212,264 +223,466 @@ class core {
     const MASK_UINT = "/d+";
     const CD_IUPDRAW = 'CD_IUPDRAW';
 
-    public $ffi, $ihandle, $ffi_libImg;
-    protected $argc;
-
+    protected $argc, $ffi_imgLib;
+    protected static $ihandle_ptr;
+    public $ffi_iup;
+    
     public function __construct() {
-        $this->ffi = FFI::load(__DIR__ . '/iup.h');
-        $this->ffi_libImg = FFI::cdef('extern void IupImageLibOpen(void);', 'dll_libs/iup/iupimglib.dll');
-        $this;
+        $this->ffi_iup = FFI::load(__DIR__ . '/iup.h');
+        $this->ffi_imgLib = FFI::cdef('extern void IupImageLibOpen(void);', '/usr/lib/libiupimglib.so');
+        self::$ihandle_ptr = $this->ffi_iup->type('Ihandle*');
+        
+        $this->argc = $this->ffi_iup->new('int32_t', false);
+        $this->open(FFI::addr($this->argc), null);
+        $this->ImageLibOpen();
     }
-
-    public function init() {
-        $this->argc = $this->ffi->new('int32_t', false);
-        $this->ffi->IupOpen(FFI::addr($this->argc), null);
-        return $this;
+    
+    /**
+     * @uses ihandle pointer call
+     * @return ihandle*
+     */
+    public static function ihandlePtr () {
+        return self::$ihandle_ptr;
     }
-
-    public function ihandle() {
-        return $this->ihandle = $this->ffi->new('Ihandle*');
+    
+    protected function ImageLibOpen() {
+        return $this->ffi_imgLib->IupImageLibOpen();
     }
-
-    public function close() {
-        $this->ffi->IupClose();
-    }
+    
     public function __call($name, $arguments = []) {
         $name = 'Iup' . ucfirst($name);
-        $number = count($arguments);
-        return $this->ffi->$name(...$arguments);
+        return $this->ffi_iup->$name(...$arguments);
     }
-    public function Version() {
-        $ver[] = FFI::string($this->ffi->IupVersion());
-        $ver[] = FFI::string($this->ffi->IupVersionDate());
-        $ver[] = (string) $this->ffi->IupVersionNumber();
-        return $ver;
+    
+    
+
+    public function version() {
+        $ver['ver'] = FFI::string($this->ffi_iup->IupVersion());
+        $ver['date'] = FFI::string($this->ffi_iup->IupVersionDate());
+        $ver['num'] = (string) $this->ffi_iup->IupVersionNumber();
+        return (object) $ver;
+    }
+    
+    /**
+     * 
+     * @param iup\widget $ih
+     * @param string $value in from of 'WxH'
+     * @return type
+     */
+    public function setSize($ih,$value){
+        return $this->setAttribute($ih, 'SIZE', $value);
+    }
+    
+    
+    public function setTitle($ih,$title){
+        return $this->setAttribute($ih, 'TITLE', $title);
     }
 
-    public function ImageLibOpen() {
-        return $this->ffi_libImg->IupImageLibOpen();
-    }
-
-    public function MainLoop() {
-        return $this->ffi->IupMainLoop();
-    }
-
-    public function GetAttribute($ih, $name) {
-        return $this->ffi->IupGetAttribute($ih, $name);
-    }
 
     /**
      * 
-     * @param Ihandle $name
+     * @param iup\Widget $ih
+     * @param type $value 'text value '
      * @return type
      */
-    public function GetHandle($name) {
-        return $this->ffi->IupGetHandle($name);
+    public function setValue($ih,$value){
+        return $this->setAttribute($ih, 'VALUE', $value);
     }
+    
+    
+    public function getValue($ih){
+        return $this->getAttribute($ih, 'VALUE');
+    }
+
 
     /**
      * 
-     * @param \iup\Ihandle $ih
-     * @param string $name
-     * @param string $vale
+     * @param type $title
+     * @param type $msg
+     * @param type $b1
+     * @param type $b2
+     * @param type $b3
      * @return type
      */
-    public function SetAttribute($ih, $name, $vale) {
-        return $this->ffi->IupSetAttribute($ih, $name, $vale);
+    public function alarm($title, $msg, $b1, $b2, $b3) {
+        return $this->ffi_iup->IupAlarm($title, $msg, $b1, $b2, $b3);
     }
-
-    public function SetAttributes($ih, $str) {
-        return $this->ffi->IupSetAttributes($ih, $str);
-    }
-
-    public function setInt($ih, $name, $value) {
-        return $this->ffi->IupSetInt($ih, $name, $value);
-    }
-
-    public function SetAttributeHandle($ih, $name, $ih_named) {
-        return $this->ffi->IupSetAttributeHandle($ih, $name, $ih_named);
-    }
-
-    public function GetAttributeHandle($ih, $name) {
-        return $this->ffi->IupGetAttributeHandle($ih, $name);
-    }
-
-    public function SetHandle($name, $ih) {
-        return $this->ffi->IupSetHandle($name, $ih);
-    }
-
-    public function ShowXY($ih, $x, $y) {
-        return $this->ffi->IupShowXY($ih, $x, $y);
-    }
-
-    public function StoreAttribute($ih, $name, $value) {
-        return $this->ffi->IupStoreAttribute($ih, $name, $value);
-    }
-
+    
     /**
      * 
-     * @param \iup\widget $child
-     * @param type $flag
+     * @param type $animation
      * @return type
      */
-    public function Vbox($child, $flag = null) {
-        return $this->ffi->IupVbox($child, $flag);
+    public function animatedLabel($animation) {
+        return $this->ffi_iup->IupAnimatedLabel($animation);
     }
-
+    
     /**
      * 
      * @param type $title
      * @param type $action
      * @return type
      */
-    public function Button($title, $action = null) {
-        return $this->ffi->IupButton($title, $action);
+    public function button($title, $action = null) {
+        return $this->ffi_iup->IupButton($title, $action);
     }
-
-    public function Callback($ih, $name, $func) {
-        return $this->ffi->IupSetCallback($ih, $name, $func);
-    }
-
-    public function SetCallback($ih, $name, $func) {
-        return $this->ffi->IupSetCallback($ih, $name, $func);
-    }
-
-    public function SetCallbacks($ih, $name, $func, $arryF) {
-        return $this->ffi->IupSetCallbacks($ih, $name, $func, $arryF);
+    
+    /**
+     * 
+     * @param type $child
+     * @return type
+     */
+    public function backgroundBox($child) {
+        return $this->ffi_iup->IupBackgroundBox($child);
     }
 
     /**
      * 
-     * @param string $label
-     * @return \iup\core - IupLabel
+     * @param type $ih
+     * @param type $name
+     * @param type $func
+     * @return type
      */
-    public function Label($label=null) {
-        return $this->ffi->IupLabel($label);
+    public function callback($ih, $name, $func) {
+        return $this->ffi_iup->IupSetCallback($ih, $name, $func);
+    }
+    
+    /**
+     * 
+     * @param type $ih
+     * @param type $x
+     * @param type $y
+     * @return type
+     */
+    public function convertXYToPos($ih, $x, $y) {
+        return $this->ffi_iup->IupConvertXYToPos($ih, $x, $y);
+    }
+    
+    public function close() {
+        $this->ffi_iup->IupClose();
+    }
+    
+    public function cells() {
+        return $this->ffi_iup->IupCells();
+    }
+    
+    /**
+     * 
+     * @param type $child
+     * @return type
+     */
+    public function cbox($child) {
+        return $this->ffi_iup->IupCbox($child);
     }
 
+    /**
+     * 
+     * @param type $children
+     * @return type
+     */
+    public function cboxV($children) {
+        return $this->ffi_iup->IupCboxv($children);
+    }
+    
+    /**
+     * 
+     * @param type $action
+     * @return type
+     */
+    public function canvas($action = null) {
+        return $this->ffi_iup->IupCanvas($action);
+    }
+    
+    public function clipBoard() {
+        return $this->ffi_iup->IupClipBoard();
+    }
+    
+    public function calendar() {
+        return $this->ffi_iup->IupCalendar();
+    }
+    
+    public function colorBar() {
+        return $this->ffi_iup->IupColorbar();
+    }
+    
+    /**
+     * 
+     * @param type $type
+     * @return type
+     */
+    public function dial($type) {
+        return $this->ffi_iup->IupDial($type);
+    }
+    
+    public function datePick() {
+        return $this->ffi_iup->IupDatePick();
+    }
+    
     /**
      * 
      * @param \iup\widget $child
      * @return type
      */
-    public function Dialog($child) {
-        return $this->ffi->IupDialog($child);
+    public function dialog($child) {
+        return $this->ffi_iup->IupDialog($child);
+    }
+    
+    /**
+     * 
+     * @param type $child
+     * @return type
+     */
+    public function detachBox($child) {
+        return $this->ffi_iup->IupDetachBox($child);
+    }
+    
+    /**
+     * 
+     * @param type $dropChild
+     * @return type
+     */
+    public function dropButton($dropChild) {
+        return $this->ffi_iup->IupDropChild($dropChild);
+    }
+    
+    /**
+     * 
+     * @param type $child
+     * @return type
+     */
+    public function expander($child) {
+        return $this->ffi_iup->IupExpander($child);
+    }
+    
+    /**
+     * 
+     * @param type $first
+     * @return type
+     */
+    public function flatTabs($first) {
+        return $this->ffi_iup->IupFlatTabs($first);
     }
 
     /**
      * 
-     * @param string $title
-     * @param string $msg
-     * @return Iup\Message - dialog
+     * @param type $children
+     * @return type
      */
-    public function Message($title, $msg) {
-        return $this->ffi->IupMessage($title, $msg);
+    public function flatTabsV($children) {
+        return $this->ffi_iup->IupFlatTabsv($children);
+    }
+    
+    /**
+     * 
+     * @param type $title
+     * @return type
+     */
+    public function flatLabel($title) {
+        return $this->ffi_iup->IupFlatLabel($title);
     }
 
-    public function Help($url) {
-        return $this->ffi->IupHelp($url);
+    public function flatSeparator() {
+        return $this->ffi_iup->IupFlatSeparator();
+    }
+    
+    public function fill() {
+        return $this->ffi_iup->IupFill();
+    }
+    
+    /**
+     * 
+     * @param type $child
+     * @return type
+     */
+    public function flatScrollBox($child) {
+        return $this->ffi_iup->IupFlatScrollBox($child);
+    }
+    
+    /**
+     * 
+     * @param type $child
+     * @return type
+     */
+    public function frame($child) {
+        return $this->ffi_iup->IupFrame($child);
+    }
+    
+    /**
+     * 
+     * @param type $child
+     * @return type
+     */
+    public function flatFrame($child) {
+        return $this->ffi_iup->IupFlatFrame($child);
+    }
+    
+    /**
+     * 
+     * @param type $title
+     * @return type
+     */
+    public function flatButton($title) {
+        return $this->ffi_iup->IupFlatButton($title);
+    }
+    
+    /*
+     * 
+     */
+    public function flatToggle($title) {
+        return $this->ffi_iup->IupFlatToggle($title);
+    }
+    
+    public function flatList() {
+        return $this->ffi_iup->IupFlatList();
+    }
+    
+    public function gauge() {
+        return $this->ffi_iup->IupGauge();
     }
 
-    public function Fill() {
-        return $this->ffi->IupFill();
+    /**
+     * 
+     * @param type $child
+     * @return type
+     */
+    public function gridBox($child) {
+        return $this->ffi_iup->IupGridBox($child);
+    }
+    
+    /**
+     * 
+     * @param type $children
+     * @return type
+     */
+    public function gridBoxV($children) {
+        return $this->ffi_iup->IupGridBoxv($children);
+    }
+    
+    /**
+     * 
+     * @param Ihandle $name
+     * @return type
+     */
+    public function getHandle($name) {
+        return $this->ffi_iup->IupGetHandle($name);
+    }
+    
+    /**
+     * 
+     * @param type $name
+     * @return type
+     */
+    public function getFunction($name){
+        return $this->ffi_iup->IupGetFunction($name);
+    }
+    
+    /**
+     * 
+     * @param type $ih
+     * @param type $name
+     * @return type
+     */
+    public function getAttributeHandle($ih, $name) {
+        return $this->ffi_iup->IupGetAttributeHandle($ih, $name);
+    }
+    /**
+     * 
+     * @param type $ih
+     * @param type $name
+     * @return type
+     */
+    public function getCallback($ih,$name){
+        return $this->ffi_iup->IupGetCallback($ih, $name);
+    }
+    
+    /**
+     * 
+     * @param type $ih
+     * @param type $name
+     * @return type
+     */
+    public function getAttribute($ih, $name) {
+        return $this->ffi_iup->IupGetAttribute($ih, $name);
+    }
+    /**
+     * 
+     * @param \iup\Ihandle $ih
+     * @param type $name
+     * @return type
+     */
+    public function getFloat($ih, $name) {
+        return $this->ffi_iup->IupGetFloat($ih, $name);
+    }
+    
+    /**
+     * 
+     * @param type $ih
+     * @param type $name
+     * @return type
+     */
+    public  function getInt($ih,$name){
+        return $this->ffi_iup->IupGetInt($ih,$name);
+    }
+    
+    /**
+     * 
+     * @param type $x
+     * @param type $y
+     * @param type $r
+     * @param type $g
+     * @param type $b
+     * @return type
+     */
+    public function getColor($x, $y, $r, $g, $b) {
+        return $this->ffi_iup->IupGetColor($x, $y, $r, $g, $b);
     }
 
-    public function Space() {
-        return $this->ffi->IupSpace();
+    public function globalsDialog() {
+        return $this->ffi_iup->IupGlobalsDialog();
+    }
+    
+    /**
+     * 
+     * @param type $title
+     * @param type $text
+     * @param int $maxsize
+     * @return type
+     */
+    public function getText($title, $text, $maxsize) {
+        return $this->ffi_iup->IupGetText($title, $text, $maxsize);
+    }
+    
+    /**
+     * 
+     * @param type $file
+     * @return type
+     */
+    public function getFile($file) {
+        return $this->ffi_iup->IupGetFile($file);
+    }
+    
+    /**
+     * 
+     * @param type $url
+     * @return type
+     */
+    public function help($url) {
+        return $this->ffi_iup->IupHelp($url);
+    }
+    
+    /**
+     * 
+     * @param type $child
+     * @return type
+     */
+    public function hbox($child) {
+        return $this->ffi_iup->IupHbox($child);
     }
 
-    public function Radio($child) {
-        return $this->ffi->IupRadio($child);
+    public function hboxV($children) {
+        return $this->ffi_iup->IupHboxv($children);
     }
-
-    public function VboxV($children) {
-        return $this->ffi->IupVboxv($children);
-    }
-
-    public function Zbox($child) {
-        return $this->ffi->IupZbox($child);
-    }
-
-    public function ZboxV($children) {
-        return $this->ffi->IupZboxv($children);
-    }
-
-    public function Hbox($child) {
-        return $this->ffi->IupHbox($child);
-    }
-
-    public function HobxV($children) {
-        return $this->ffi->IupHboxv($children);
-    }
-
-    public function Normalizer($ih_first) {
-        return $this->ffi->IupNormalizer($ih_first);
-    }
-
-    public function NormalizerV($ih_list) {
-        return $this->ffi->IupNormalizerv($ih_list);
-    }
-
-    public function Cbox($child) {
-        return $this->ffi->IupCbox($child);
-    }
-
-    public function CboxV($children) {
-        return $this->ffi->IupCboxv($children);
-    }
-
-    public function Sbox($child) {
-        return $this->ffi->IupSbox($child);
-    }
-
-    public function Split($child_1, $child_2) {
-        return $this->ffi->IupSplit($child_1, $child_2);
-    }
-
-    public function ScrollBox($child) {
-        return $this->ffi->IupScrollBox($child);
-    }
-
-    public function FlatScrollBox($child) {
-        return $this->ffi->IupFlatScrollBox($child);
-    }
-
-    public function GridBox($child) {
-        return $this->ffi->IupGridBox($child);
-    }
-
-    public function GridBoxV($children) {
-        return $this->ffi->IupGridBoxv($children);
-    }
-
-    public function MultiBox($child) {
-        return $this->ffi->IupMultiBox($child);
-    }
-
-    public function MultiBoxV($children) {
-        return $this->ffi->IupMultiBoxv($children);
-    }
-
-    public function Expander($child) {
-        return $this->ffi->IupExpander($child);
-    }
-
-    public function DetachBox($child) {
-        return $this->ffi->IupDetachBox($child);
-    }
-
-    public function BackgroundBox($child) {
-        return $this->ffi->IupBackgroundBox($child);
-    }
-
-    public function Frame($child) {
-        return $this->ffi->IupFrame($child);
-    }
-
-    public function FlatFrame($child) {
-        return $this->ffi->IupFlatFrame($child);
-    }
-
+    
     /**
      * 
      * @param int $width
@@ -477,229 +690,36 @@ class core {
      * @param array $pixmap
      * @return type
      */
-    public function Image($width, $hight, $pixmap = []) {
+    public function image($width, $hight, $pixmap = []) {
         $size = sizeof($pixmap);
         $img = FFI::new("unsigned char[$size]");
         for ($i = 0; $i < count($pixmap); $i++) {
             $img[$i] = $pixmap[$i];
         }
-        return $this->ffi->IupImage($width, $hight, $img);
+        return $this->ffi_iup->IupImage($width, $hight, $img);
     }
 
-    public function ImageRGB($widht, $height, $pixmap) {
-        return $this->ffi->IupImageRGB($widht, $height, $pixmap);
+    public function imageRGB($widht, $height, $pixmap) {
+        $size = sizeof($pixmap);
+        $img = FFI::new("unsigned char[$size]");
+        for ($i = 0; $i < count($pixmap); $i++) {
+            $img[$i] = $pixmap[$i];
+        }
+        return $this->ffi_iup->IupImageRGB($widht, $height, $img);
     }
 
-    public function ImageRGBA($width, $height, $pixmap) {
-        return $this->ffi->IupImageRGBA($width, $height, $pixmap);
+    public function imageRGBA($width, $height, $pixmap) {
+        return $this->ffi_iup->IupImageRGBA($width, $height, $pixmap);
     }
 
-    public function Item($title, $action = null) {
-        return $this->ffi->IupItem($title, $action);
+    public function item($title, $action = null) {
+        return $this->ffi_iup->IupItem($title, $action);
     }
-
-    public function SubMenu($title, $child) {
-        return $this->ffi->IupSubmenu($title, $child);
+    
+    public function link($url, $title) {
+        return $this->ffi_iup->IupLink($url, $title);
     }
-
-    public function Separator() {
-        return $this->ffi->IupSeparator();
-    }
-
-    public function Menu($child) { //todo
-        return $this->ffi->IupMenu($child, null);
-    }
-
-    public function MenuV($children) {
-        return $this->ffi->IupMenuV($children);
-    }
-
-    public function FlatButton($title) {
-        return $this->ffi->IupFlatButton($title);
-    }
-
-    public function FlatToggle($title) {
-        return $this->ffi->IupFlatToggle($title);
-    }
-
-    public function DropButton($dropChild) {
-        return $this->ffi->IupDropChild($dropChild);
-    }
-
-    public function FlatLabel($title) {
-        return $this->ffi->IupFlatLabel($title);
-    }
-
-    public function FlatSeparator() {
-        return $this->ffi->IupFlatSeparator();
-    }
-
-    public function Canvas($action = null) {
-        return $this->ffi->IupCanvas($action);
-    }
-
-    public function User() {
-        return $this->ffi->IupUser();
-    }
-
-    public function List($action = null) {
-        return $this->ffi->IupList($action);
-    }
-
-    public function FlatList() {
-        return $this->ffi->IupFlatList();
-    }
-
-    public function Text($action = null) {
-        return $this->ffi->IupText($action);
-    }
-
-    public function Toggle($title, $action = null) {
-        return $this->ffi->IupToggle($title, $action);
-    }
-
-    public function MultiLine($action = null) {
-        return $this->ffi->IupMultiLine($action);
-    }
-
-    public function Timer() {
-        return $this->ffi->IupTimer();
-    }
-
-    public function ClipBoard() {
-        return $this->ffi->IupClipBoard();
-    }
-
-    public function ProgressBar() {
-        return $this->ffi->IupProgressBar();
-    }
-
-    public function Val($type = null) {
-        return $this->ffi->IupVal($type);
-    }
-
-    public function Tabs($child) {
-        return $this->ffi->IupTabs($child);
-    }
-
-    public function TabsV($children) {
-        return $this->ffi->IupTabsv($children);
-    }
-
-    public function FlatTabs($first) {
-        return $this->ffi->IupFlatTabs($first);
-    }
-
-    public function FlatTabsV($children) {
-        return $this->ffi->IupFlatTabsv($children);
-    }
-
-    public function Tree() {
-        return $this->ffi->IupTree();
-    }
-
-    public function Link($url, $title) {
-        return $this->ffi->IupLink($url, $title);
-    }
-
-    public function AnimatedLabel($animation) {
-        return $this->ffi->IupAnimatedLabel($animation);
-    }
-
-    public function DatePick() {
-        return $this->ffi->IupDatePick();
-    }
-
-    public function Calendar() {
-        return $this->ffi->IupCalendar();
-    }
-
-    public function ColorBar() {
-        return $this->ffi->IupColorbar();
-    }
-
-    public function Gauge() {
-        return $this->ffi->IupGauge();
-    }
-
-    public function Dial($type) {
-        return $this->ffi->IupDial($type);
-    }
-
-    public function Spin() {
-        return $this->ffi->IupSpin();
-    }
-
-    public function SpinBox($child) {
-        return $this->ffi->IupSpinbox($child);
-    }
-
-    public function StringCompare($string_1, $string_2, $casesensitive, $lexicographic) {
-        return $this->ffi->IupStringCompare($string_1, $string_2, $casesensitive, $lexicographic);
-    }
-
-    public function SaveImageAsText($ih, $file_name, $format, $name) {
-        return $this->ffi->IupSaveImageAsText($ih, $file_name, $format, $name);
-    }
-
-    public function TextConvertLinColToPos($ih, $ln, $col, $pos) {
-        return $this->ffi->IupTextConvertLinColToPos($ih, $ln, $col, $pos);
-    }
-
-    public function TextConvertPosToLinCol($ih, $pos, $ln, $col) {
-        return $this->ffi->IupTextConvertPosToLinCol($ih, $pos, $ln, $col);
-    }
-
-    public function ConvertXYToPos($ih, $x, $y) {
-        return $this->ffi->IupConvertXYToPos($ih, $x, $y);
-    }
-
-    public function TreeSetUserId($ih, $id, $userid) {
-        return $this->ffi->IupTreeSetUserId($ih, $id, $userid);
-    }
-
-    public function TreeGetUserId($ih, $id) {
-        return $this->ffi->IupTreeGetUserId($ih, $id);
-    }
-
-    public function TreeGetId($ih, $userid) {
-        return $this->ffi->IupTreeGetId($ih, $userid);
-    }
-
-    public function TreeSetAttributeHandle($ih, $name, $id, $ih_named) {
-        return $this->ffi->IupTreeSetAttributeHandle($ih, $name, $id, $ih_named);
-    }
-
-    /**
-     * 
-     * @param \iup\Ihandle $ih
-     * @param type $name
-     * @return type
-     */
-    public function IupGetFloat($ih, $name) {
-        return $this->ffi->IupGetFloat($ih, $name);
-    }
-
-    public function GetFile($file) {
-        return $this->ffi->IupGetFile($file);
-    }
-
-    public function Messagef($title, $format) {
-        return $this->ffi->IupMessagef($title, $format);
-    }
-
-    public function MessageError($parent, $message) {
-        return $this->ffi->IupMessageError($parent, $message);
-    }
-
-    public function MessageAlarm($parent, $title, $message, $buttons) {
-        return $this->ffi->IupMessageAlarm($parent, $title, $message, $buttons);
-    }
-
-    public function Alarm($title, $msg, $b1, $b2, $b3) {
-        return $this->ffi->IupAlarm($title, $msg, $b1, $b2, $b3);
-    }
-
+    
     /**
      * 
      * @param int $type
@@ -712,262 +732,582 @@ class core {
      * @param int $marks
      * @return type
      */
-    public function ListDialog($type, $title, $size, $list, $op, $max_col, $max_lin, $marks) {
-        return $this->ffi->IupListDialog($type, $title, $size, $list, $op, $max_col, $max_lin, $marks);
+    public function listDialog($type, $title, $size, $list, $op, $max_col, $max_lin, $marks) {
+        return $this->ffi_iup->IupListDialog($type, $title, $size, $list, $op, $max_col, $max_lin, $marks);
     }
-
+    
+    public function layoutDialog($dialog) {
+        return $this->ffi_iup->IupLayoutDialog($dialog);
+    }
     /**
      * 
-     * @param type $title
-     * @param type $text
-     * @param int $maxsize
+     * @param string $label
+     * @return \iup\core - IupLabel
+     */
+    public function label($label=null) {
+        return $this->ffi_iup->IupLabel($label);
+    }
+    
+    public function list($action = null) {
+        return $this->ffi_iup->IupList($action);
+    }
+    
+    public function mainLoop() {
+        return $this->ffi_iup->IupMainLoop();
+    }
+    
+    public function menu($child) { //todo
+        return $this->ffi_iup->IupMenu($child, null);
+    }
+
+    public function menuV($children) {
+        return $this->ffi_iup->IupMenuV($children);
+    }
+    
+    
+    public function messagef($title, $format) {
+        return $this->ffi_iup->IupMessagef($title, $format);
+    }
+
+    public function messageError($parent, $message) {
+        return $this->ffi_iup->IupMessageError($parent, $message);
+    }
+
+    public function messageAlarm($parent, $title, $message, $buttons) {
+        return $this->ffi_iup->IupMessageAlarm($parent, $title, $message, $buttons);
+    }
+    /**
+     * 
+     * @param string $title
+     * @param string $msg
+     * @return Iup\Message - dialog
+     */
+    public function message($title, $msg) {
+        return $this->ffi_iup->IupMessage($title, $msg);
+    }
+    
+    public function multiBox($child) {
+        return $this->ffi_iup->IupMultiBox($child);
+    }
+
+    public function multiBoxV($children) {
+        return $this->ffi_iup->IupMultiBoxv($children);
+    }
+    
+    public function multiLine($action = null) {
+        return $this->ffi_iup->IupMultiLine($action);
+    }
+    
+    public function normalizer($ih_first) {
+        return $this->ffi_iup->IupNormalizer($ih_first);
+    }
+    
+    public function normalizerV($ih_list) {
+        return $this->ffi_iup->IupNormalizerv($ih_list);
+    }
+    
+    public function progressBar() {
+        return $this->ffi_iup->IupProgressBar();
+    }
+    
+    public function param($format) {
+        return $this->ffi_iup->IupParam($format);
+    }
+
+    public function paramBox($param) {
+        return $this->ffi_iup->IupParamBox($param);
+    }
+
+    public function paramBoxV($param_array) {
+        return $this->ffi_iup->IupParamBoxv($param_array);
+    }
+    
+    public function radio($child) {
+        return $this->ffi_iup->IupRadio($child);
+    }
+    
+    /**
+     * 
+     * @param \iup\core Ihandle $ih
+     * @param string $name
+     * @param string $vale
      * @return type
      */
-    public function GetText($title, $text, $maxsize) {
-        return $this->ffi->IupGetText($title, $text, $maxsize);
+    public function setAttribute($ih, $name, $vale) {
+        return $this->ffi_iup->IupSetAttribute($ih, $name, $vale);
+    }
+    
+    /**
+     * 
+     * @param \iup\core\Ihandle $ih
+     * @param string  $str
+     * @return Ihandle object
+     */
+    public function setAttributes($ih, $str) {
+        return $this->ffi_iup->IupSetAttributes($ih, $str);
+    }
+    
+    /**
+     * 
+     * @param type $ih
+     * @param type $name
+     * @param type $value
+     * @return type
+     */
+    public function setInt($ih, $name, $value) {
+        return $this->ffi_iup->IupSetInt($ih, $name, $value);
     }
 
-    public function GetColor($x, $y, $r, $g, $b) {
-        return $this->ffi->IupGetColor($x, $y, $r, $g, $b);
+    public function setAttributeHandle($ih, $name, $ih_named) {
+        return $this->ffi_iup->IupSetAttributeHandle($ih, $name, $ih_named);
+    }
+    
+    public function setHandle($name, $ih) {
+        return $this->ffi_iup->IupSetHandle($name, $ih);
     }
 
-    public function GlobalsDialog() {
-        return $this->ffi->IupGlobalsDialog();
+    public function showXY($ih, $x, $y) {
+        return $this->ffi_iup->IupShowXY($ih, $x, $y);
     }
 
-    public function LayoutDialog($dialog) {
-        return $this->ffi->IupLayoutDialog($dialog);
+    public function storeAttribute($ih, $name, $value) {
+        return $this->ffi_iup->IupStoreAttribute($ih, $name, $value);
+    }
+    
+    public function space() {
+        return $this->ffi_iup->IupSpace();
+    }
+    
+    public function setCallback($ih, $name, $func) {
+        return $this->ffi_iup->IupSetCallback($ih, $name, $func);
     }
 
-    public function Param($format) {
-        return $this->ffi->IupParam($format);
+    public function setCallbacks($ih, $name, $func, $arryF) {
+        return $this->ffi_iup->IupSetCallbacks($ih, $name, $func, $arryF);
+    }
+    
+    public function sbox($child) {
+        return $this->ffi_iup->IupSbox($child);
     }
 
-    public function ParamBox($param) {
-        return $this->ffi->IupParamBox($param);
+    public function split($child_1, $child_2) {
+        return $this->ffi_iup->IupSplit($child_1, $child_2);
     }
 
-    public function ParamBoxV($param_array) {
-        return $this->ffi->IupParamBoxv($param_array);
+    public function scrollBox($child) {
+        return $this->ffi_iup->IupScrollBox($child);
+    }
+    
+    public function subMenu($title, $child) {
+        return $this->ffi_iup->IupSubmenu($title, $child);
     }
 
-    public function ElementPropertiesDialog($elem) {
-        return $this->ffi->IupElementPropertiesDialog($elem);
+    public function separator() {
+        return $this->ffi_iup->IupSeparator();
+    }
+    
+    public function spin() {
+        return $this->ffi_iup->IupSpin();
     }
 
-    public function Scanf($format) {
-        return $this->ffi->IupScanf($format);
+    public function spinBox($child) {
+        return $this->ffi_iup->IupSpinbox($child);
+    }
+    
+    public function setFunction($name,$func){
+        return $this->ffi_iup->IupSetFunction($name, $func);
     }
 
-    public function FileDlg() {
-        return $this->ffi->IupFileDlg();
+    public function stringCompare($string_1, $string_2, $casesensitive, $lexicographic) {
+        return $this->ffi_iup->IupStringCompare($string_1, $string_2, $casesensitive, $lexicographic);
     }
 
-    public function ColorDlg() {
-        return $this->ffi->IupColorDlg();
+    public function saveImageAsText($ih, $file_name, $format, $name) {
+        return $this->ffi_iup->IupSaveImageAsText($ih, $file_name, $format, $name);
     }
 
-    public function FontDlg() {
-        return $this->ffi->IupFontDlg();
+    public function textConvertLinColToPos($ih, $ln, $col, $pos) {
+        return $this->ffi_iup->IupTextConvertLinColToPos($ih, $ln, $col, $pos);
     }
 
-    public function ProgressDlg() {
-        return $this->ffi->IupProgressDlg();
+    public function textConvertPosToLinCol($ih, $pos, $ln, $col) {
+        return $this->ffi_iup->IupTextConvertPosToLinCol($ih, $pos, $ln, $col);
+    }
+    
+    public function text($val = null) {
+        return $this->ffi_iup->IupText($val);
+    }
+    
+    public function toggle($title, $action = null) {
+        return $this->ffi_iup->IupToggle($title, $action);
+    }
+    
+    public function timer() {
+        return $this->ffi_iup->IupTimer();
+    }
+    
+    public function tree() {
+        return $this->ffi_iup->IupTree();
     }
 
-    public function LoopStep() {
-        return $this->ffi->IupLoopStep();
+    public function tabs($child) {
+        return $this->ffi_iup->IupTabs($child);
     }
 
-    public function LoopStepWait() {
-        return $this->ffi->IupLoopStepWait();
+    public function tabsV($children) {
+        return $this->ffi_iup->IupTabsv($children);
+    }
+    
+    public function user() {
+        return $this->ffi_iup->IupUser();
+    }
+    
+    public function val($type = null) {
+        return $this->ffi_iup->IupVal($type);
+    }
+    
+    /**
+     * 
+     * @param \iup\widget $child
+     * @param type $flag
+     * @return type
+     */
+    public function vbox($child, $flag = null) {
+        return $this->ffi_iup->IupVbox($child, $flag);
+    }
+    
+    public function vboxV($children) {
+        return $this->ffi_iup->IupVboxv($children);
     }
 
-    public function MainLoopLevel() {
-        return $this->ffi->IupMainLoopLevel();
+    public function zbox($child) {
+        return $this->ffi_iup->IupZbox($child);
     }
 
-    public function Flush() {
-        return $this->ffi->IupFlush();
+    public function zboxV($children) {
+        return $this->ffi_iup->IupZboxv($children);
+    }
+    
+    public function elementPropertiesDialog($elem) {
+        return $this->ffi_iup->IupElementPropertiesDialog($elem);
     }
 
-    public function ExitLoop() {
-        return $this->ffi->IupExitLoop();
+    public function scanf($format) {
+        return $this->ffi_iup->IupScanf($format);
     }
 
-    public function RecordInput($file, $mode) {
-        return $this->ffi->IupRecordInput($file, $mode);
+    public function fileDlg() {
+        return $this->ffi_iup->IupFileDlg();
     }
 
-    public function PlayInput($filename) {
-        return $this->ffi->IupPlayInput($filename);
+    public function colorDlg() {
+        return $this->ffi_iup->IupColorDlg();
     }
 
-    public function Update($ih) {
-        return $this->ffi->IupUpdate($ih);
+    public function fontDlg() {
+        return $this->ffi_iup->IupFontDlg();
     }
 
-    public function UpdateChildren($ih) {
-        return $this->ffi->IupUpdateChildren($ih);
+    public function progressDlg() {
+        return $this->ffi_iup->IupProgressDlg();
     }
 
-    public function Redraw($ih, $children) {
-        return $this->ffi->IupRedraw($ih, $children);
+    public function loopStep() {
+        return $this->ffi_iup->IupLoopStep();
     }
 
-    public function Refresh($ih) {
-        return $this->ffi->IupRefresh($ih);
+    public function loopStepWait() {
+        return $this->ffi_iup->IupLoopStepWait();
     }
 
-    public function RefreshChildren($ih) {
-        return $this->ffi->IupRefreshChildren($ih);
+    public function mainLoopLevel() {
+        return $this->ffi_iup->IupMainLoopLevel();
     }
 
-    public function Load($filname) {
-        return $this->ffi->IupLoad($filname);
+    public function flush() {
+        return $this->ffi_iup->IupFlush();
     }
 
-    public function LoadBuffer($buffer) {
-        return $this->ffi->IupLoadBuffer($buffer);
+    public function exitLoop() {
+        return $this->ffi_iup->IupExitLoop();
     }
 
-    public function Destroy($ih) {
-        return $this->ffi->IupDestroy($ih);
+    public function recordInput($file, $mode) {
+        return $this->ffi_iup->IupRecordInput($file, $mode);
     }
 
-    public function Detach($child) {
-        return $this->ffi->IupDetach($child);
+    public function playInput($filename) {
+        return $this->ffi_iup->IupPlayInput($filename);
     }
 
-    public function Append($ih, $child) {
-        return $this->ffi->IupAppend($ih, $child);
+    public function update($ih) {
+        return $this->ffi_iup->IupUpdate($ih);
     }
 
-    public function Insert($ih, $ref_child, $child) {
-        return $this->ffi->IupInsert($ih, $ref_child, $child);
+    public function updateChildren($ih) {
+        return $this->ffi_iup->IupUpdateChildren($ih);
     }
 
-    public function GetChild($ih, $child) {
-        return $this->ffi->IupGetChild($ih, $child);
+    public function redraw($ih, $children) {
+        return $this->ffi_iup->IupRedraw($ih, $children);
     }
 
-    public function GetChildPos($ih, $child) {
-        return $this->ffi->IupGetChildPos($ih, $child);
+    public function refresh($ih) {
+        return $this->ffi_iup->IupRefresh($ih);
     }
 
-    public function GetChildCount($ih) {
-        return $this->ffi->IupGetChildCount($ih);
+    public function refreshChildren($ih) {
+        return $this->ffi_iup->IupRefreshChildren($ih);
     }
 
-    public function GetNextChild($ih, $child) {
-        return $this->ffi->IupGetNextChild($ih, $child);
+    public function load($filname) {
+        return $this->ffi_iup->IupLoad($filname);
     }
 
-    public function GetBrother($ih) {
-        return $this->ffi->IupGetBrother($ih);
+    public function loadBuffer($buffer) {
+        return $this->ffi_iup->IupLoadBuffer($buffer);
     }
 
-    public function GetParent($ih) {
-        return $this->ffi->IupGetParent($ih);
+    public function destroy($ih) {
+        return $this->ffi_iup->IupDestroy($ih);
     }
 
-    public function GetDialog($ih) {
-        return $this->ffi->IupGetDialog($ih);
+    public function detach($child) {
+        return $this->ffi_iup->IupDetach($child);
     }
 
-    public function GetDialogChild($ih, $name) {
-        return $this->ffi->IupGetDialogChild($ih, $name);
+    public function append($ih, $child) {
+        return $this->ffi_iup->IupAppend($ih, $child);
     }
 
-    public function Reparent($ih, $new_parent, $ref_child) {
-        return $this->ffi->IupReparent($ih, $new_parent, $ref_child);
+    public function insert($ih, $ref_child, $child) {
+        return $this->ffi_iup->IupInsert($ih, $ref_child, $child);
     }
 
-    public function Popup($ih, $x, $y) {
-        return $this->ffi->IupPopup($ih, $x, $y);
+    public function getChild($ih, $child) {
+        return $this->ffi_iup->IupGetChild($ih, $child);
     }
 
-    public function Show($ih) {
-        return $this->ffi->IupShow($ih);
+    public function getChildPos($ih, $child) {
+        return $this->ffi_iup->IupGetChildPos($ih, $child);
     }
 
-    public function Hide($ih) {
-        return $this->ffi->IupHide($ih);
+    public function getChildCount($ih) {
+        return $this->ffi_iup->IupGetChildCount($ih);
     }
 
-    public function Map($ih) {
-        return $this->ffi->IupMap($ih);
+    public function getNextChild($ih, $child) {
+        return $this->ffi_iup->IupGetNextChild($ih, $child);
     }
 
-    public function UnMap($ih) {
-        return $this->ffi->IupUnmap($ih);
+    public function getBrother($ih) {
+        return $this->ffi_iup->IupGetBrother($ih);
     }
 
-    public function SetFunction($name, $func) {
-        return $this->ffi->IupSetFunction($name, $func);
+    public function getParent($ih) {
+        return $this->ffi_iup->IupGetParent($ih);
     }
 
-    public function SetGlobal($name, $value) {
-        return $this->ffi->IupSetGlobal($name, $value);
+    public function getDialog($ih) {
+        return $this->ffi_iup->IupGetDialog($ih);
     }
 
-    public function SetStrGlobal($name, $value) {
-        return $this->ffi->IupSetStrGlobal($name, $value);
+    public function getDialogChild($ih, $name) {
+        return $this->ffi_iup->IupGetDialogChild($ih, $name);
     }
 
-    public function GetGlobal($ih, $name) {
-        return $this->ffi->IupGetGlobal($ih, $name);
+    public function reparent($ih, $new_parent, $ref_child) {
+        return $this->ffi_iup->IupReparent($ih, $new_parent, $ref_child);
     }
 
-    public function im() {
-        return $im = new im();
+    public function popup($ih, $x, $y) {
+        return $this->ffi_iup->IupPopup($ih, $x, $y);
     }
 
-    public function loadImage($file_name) {
-        $load_image = $this->im()->ffi_iupim->IupLoadImage($file_name);
-        return \FFI::cast(\FFI::typeof($this->ihandle()), $load_image);
+    public function show($ih) {
+        return $this->ffi_iup->IupShow($ih);
     }
 
-    public function saveImage($ih, $file_name, $format) {
-        return $this->im()->ffi_iupim->IupSaveImage($ih, $file_name, $format);
+    public function hide($ih) {
+        return $this->ffi_iup->IupHide($ih);
     }
 
-    public function loadAnimation($file_name) {
-        $load_animation = $this->im()->ffi_iupim->IupLoadAnimation($file_name);
-        return \FFI::cast(\FFI::typeof($this->ihandle()), $load_animation);
+    public function map($ih) {
+        return $this->ffi_iup->IupMap($ih);
     }
 
-    public function loadAnimationFrames($file_name_list, $file_count) {
-        $frames = $this->im()->ffi_iupim->IupLoadAnimationFrames($file_name_list, $file_count);
-        return \FFI::cast(\FFI::typeof($this->ihandle()), $frames);
+    public function unMap($ih) {
+        return $this->ffi_iup->IupUnmap($ih);
     }
 
+    public function setGlobal($name, $value) {
+        return $this->ffi_iup->IupSetGlobal($name, $value);
+    }
+
+    public function setStrGlobal($name, $value) {
+        return $this->ffi_iup->IupSetStrGlobal($name, $value);
+    }
+
+    public function getGlobal($ih, $name) {
+        return $this->ffi_iup->IupGetGlobal($ih, $name);
+    }
+}
+
+class scintilla {
+
+    protected $ffi_scintilla;
+
+    public function __construct() {
+        $this->ffi_scintilla = \FFI::load(__DIR__ . '/scintilla.h');
+        $this->scintillaOpen();
+    }
+    
+    public function scintilla_init() {
+        return \FFI::cast(core::ihandlePtr(), $this->ffi_scintilla->IupScintilla());
+    }
+
+    public function ScintillaDlg() {
+        return \FFI::cast(core::ihandlePtr(), $this->ffi_scintilla->IupScintillaDlg());
+    }
+    
+    public function __call($name, $arguments = []) {
+        $name = 'Iup' . ucfirst($name);
+        return $this->ffi_scintilla->$name(...$arguments);
+    }
+}
+
+class webView {
+
+    protected $ffi_webView;
+    public $url, $title;
+
+    public function __construct($title = 'core', $url = 'http://google.in') {
+        $this->ffi_webView = \FFI::load(__DIR__ . '/webKit.h');
+        $this->title = $title;
+        $this->url = $url;
+        $this->webBrowserOpen();
+    }
+    
+    public function webopen(){
+        return FFI::cast(core::ihandlePtr(), $this->webBrowser());
+    }
+
+    public function __call($name, $arguments = []) {
+        $name = 'Iup' . ucfirst($name);
+        return $this->ffi_webView->$name(...$arguments);
+    }
+}
+
+class extra {
+
+    protected $ffi_extra;
+
+    public function __construct() {
+        $this->ffi_extra = \FFI::load(__DIR__ . '/controls.h');
+        $this->controlsOpen();
+    }
+    
     public function cells() {
-        
+        return FFI::cast(core::ihandlePtr(), $this->ffi_extra->IupCells());
+    }
+    
+    public function matrix($action = null) {
+        return FFI::cast(core::ihandlePtr(), $this->ffi_extra->IupMatrix($action));
+    }
+    
+    public function matrixList() {
+        return FFI::cast(core::ihandlePtr(), $this->ffi_extra->IupMatrixList());
+    }
+
+    public function matrixEx() {
+        return FFI::cast(core::ihandlePtr(), $this->ffi_extra->IupMatrixEx());
+    }
+    
+    public function __call($name, $arguments = []) {
+        $name = 'Iup' . ucfirst($name);
+        return $this->ffi_extra->$name(...$arguments);
     }
 
 }
 
-class scintilla extends core {
+class image {
 
-    public $ffi_scintila;
+    protected $ffi_iupImage;
 
     public function __construct() {
-        parent::__construct();
-        $this->init();
-        $this->ffi_scintila = FFI::load(__DIR__ . '/scintilla.h');
+        $this->ffi_iupImage = FFI::load(__DIR__ . '/iupim.h');
+    }
+    
+    public function loadImage($file){
+        return FFI::cast(core::ihandlePtr(), $this->ffi_iupImage->IupLoadImage($file));
+    }
+    
+    public function saveImage($ih, $file_name, $format){
+        return $this->ffi_iupImage->IupSaveImage($ih, $file_name, $format);
+    }
+    
+    public function loadAnimation($file_name) {
+        $load_animation = $this->ffi_iupImage->IupLoadAnimation($file_name);
+        return \FFI::cast(core::ihandlePtr(), $load_animation);
+    }
+    
+    public function loadAnimationFrames($file_name_list, $file_count) {
+        $frames = $this->ffi_iupImage->IupLoadAnimationFrames($file_name_list, $file_count);
+        return \FFI::cast(core::ihandlePtr(), $frames);
     }
 
-    public function scintillaOpen() {
-        return $this->ffi_scintila->IupScintillaOpen();
+}
+
+class canvas {
+
+    public $ffi_iupcd;
+
+    public function __construct() {
+        $this->ffi_cd = FFI::load(__DIR__ . '/cd.h');
+        $this->ffi_iupcd = FFI::load(__DIR__ . '/iupcd.h');
     }
 
-    public function scintilla() {
-        return \FFI::cast(\FFI::typeof($this->ihandle()), $this->ffi_scintila->IupScintilla());
+    public function __call($name, $arguments = []) {
+        $name = 'Iup' . ucfirst($name);
+        return $this->ffi_iupcd->$name(...$arguments);
     }
 
-    public function ScintillaDlg() {
-        return \FFI::cast(\FFI::typeof($this->ihandle()), $this->ffi_scintila->IupScintillaDlg());
+}
+
+class im {
+
+    const RGB = 'IM_RGB';
+    const MAP = 'IM_MAP';
+    const GRAY = 'IM_GRAY';
+    const BINARY = 'IM_BINARY';
+    const CMYK = 'IM_CMYK';
+    const YCBCR = 'IM_YCBCR';
+    const LAB = 'IM_LAB';
+    const LUV = 'IM_LUV';
+    const XYZ = 'IM_XYZ';
+    const ERR_NONE = 'IM_ERR_NONE';
+    const ERR_OPEN = 'IM_ERR_OPEN';
+    const ERR_ACCESS = 'IM_ERR_ACCESS';
+    const ERR_FORMAT = 'IM_ERR_FORMAT';
+    const ERR_DATA = 'IM_ERR_DATA';
+    const ERR_COMPRESS = 'IM_ERR_COMPRESS';
+    const ERR_MEM = 'IM_ERR_MEM';
+    const ERR_COUNTER = 'IM_ERR_COUNTER';
+    const ALPHA = 0x100;
+    const PACKED = 0x200;
+    const TOPDOWN = 0x400;
+
+    public $ffi_im, $imImage_ptr, $imFile_ptr;
+
+    public function __construct() {
+        $this->ffi_im = FFI::load(__DIR__ . '/im.h');
+        $this->imFile_ptr = $this->ffi_im->type('imFile*');
+        $this->imImage_ptr = $this->ffi_im->type('imImage*');
+    }
+
+    public function __call($name, $arguments = []) {
+        $name = 'im' . ucfirst($name);
+        return $this->ffi_im->$name(...$arguments);
     }
 
 }
@@ -1030,272 +1370,38 @@ class cd {
     const CD_SIM_POLYGON = 0x0080;
     const CD_SIM_TEXT = 0x0100;
     const CD_SIM_ALL = 0xFFFF;
-    const CD_RED = 0xFF0000;   /* 255,  0,  0 */
-    const CD_DARK_RED = 0x800000; /* 128,  0,  0 */
-    const CD_GREEN = 0x00FF00; /*   0,255,  0 */
-    const CD_DARK_GREEN = 0x008000; /*   0,128,  0 */
-    const CD_BLUE = 0x0000FF; /*   0,  0,255 */
-    const CD_DARK_BLUE = 0x000080; /*   0,  0,128 */
-    const CD_YELLOW = 0xFFFF00; /* 255,255,  0 */
-    const CD_DARK_YELLOW = 0x808000; /* 128,128,  0 */
-    const CD_MAGENTA = 0xFF00FF; /* 255,  0,255 */
-    const CD_DARK_MAGENTA = 0x800080; /* 128,  0,128 */
-    const CD_CYAN = 0x00FFFF; /*   0,255,255 */
-    const CD_DARK_CYAN = 0x008080; /*   0,128,128 */
-    const CD_WHITE = 0xFFFFFF; /* 255,255,255 */
-    const CD_BLACK = 0x000000; /*   0,  0,  0 */
-    const CD_DARK_GRAY = 0x808080; /* 128,128,128 */
-    const CD_GRAY = 0xC0C0C0; /* 192,192,192 */
+    const RED = 0xFF0000;   /* 255,  0,  0 */
+    const DARK_RED = 0x800000; /* 128,  0,  0 */
+    const GREEN = 0x00FF00; /*   0,255,  0 */
+    const DARK_GREEN = 0x008000; /*   0,128,  0 */
+    const BLUE = 0x0000FF; /*   0,  0,255 */
+    const DARK_BLUE = 0x000080; /*   0,  0,128 */
+    const YELLOW = 0xFFFF00; /* 255,255,  0 */
+    const DARK_YELLOW = 0x808000; /* 128,128,  0 */
+    const MAGENTA = 0xFF00FF; /* 255,  0,255 */
+    const DARK_MAGENTA = 0x800080; /* 128,  0,128 */
+    const CYAN = 0x00FFFF; /*   0,255,255 */
+    const DARK_CYAN = 0x008080; /*   0,128,128 */
+    const WHITE = 0xFFFFFF; /* 255,255,255 */
+    const BLACK = 0x000000; /*   0,  0,  0 */
+    const DARK_GRAY = 0x808080; /* 128,128,128 */
+    const GRAY = 0xC0C0C0; /* 192,192,192 */
 
-    public $ffi_iupcd, $ffi_cd, $cdCanvas;
+    public $ffi_cd;
+    protected static $cdCanvasPtr;
 
     public function __construct() {
         $this->ffi_cd = FFI::load(__DIR__ . '/cd.h');
-        $this->ffi_iupcd = FFI::load(__DIR__ . '/iupcd.h');
+        self::$cdCanvasPtr = $this->ffi_cd->new('cdCanvas*');
     }
-
-    public function cdCanvas() {
-        return $this->ffi_cd->new('cdCanvas*');
-    }
-
-    public function cdCreateCanvas($cd_context, $data) {
-        return $this->ffi_cd->cdCreateCanvas($cd_context, $data);
-    }
-
-    public function cdCanvasActivate($cdCanvas) {
-        return $this->ffi_cd->cdCanvasActivate($cdCanvas);
-    }
-
-    public function cdCanvasClear($cdCanvas) {
-        return $this->ffi_cd->cdCanvasClear($cdCanvas);
-    }
-
-    public function cdCanvasFlush($canvas) {
-        return $this->ffi_cd->cdCanvasFlush($canvas);
-    }
-
-    public function cdKillCanvas($canvas) {
-        return $this->ffi_cd->cdKillCanvas($canvas);
-    }
-
-}
-
-class plot extends cd {
-
-
-}
-
-class im {
-
-    const RGB = 'IM_RGB';
-    const MAP = 'IM_MAP';
-    const GRAY = 'IM_GRAY';
-    const BINARY = 'IM_BINARY';
-    const CMYK = 'IM_CMYK';
-    const YCBCR = 'IM_YCBCR';
-    const LAB = 'IM_LAB';
-    const LUV = 'IM_LUV';
-    const XYZ = 'IM_XYZ';
-    const ERR_NONE = 'IM_ERR_NONE';
-    const ERR_OPEN = 'IM_ERR_OPEN';
-    const ERR_ACCESS = 'IM_ERR_ACCESS';
-    const ERR_FORMAT = 'IM_ERR_FORMAT';
-    const ERR_DATA = 'IM_ERR_DATA';
-    const ERR_COMPRESS = 'IM_ERR_COMPRESS';
-    const ERR_MEM = 'IM_ERR_MEM';
-    const ERR_COUNTER = 'IM_ERR_COUNTER';
-    const ALPHA = 0x100;
-    const PACKED = 0x200;
-    const TOPDOWN = 0x400;
-
-    public $ffi_iupim, $ffi_im, $ffi_image, $imImage, $imFile;
-
-    public function __construct() {
-        $this->ffi_im = FFI::load(__DIR__ . '/im.h');
-        $this->ffi_image = FFI::load(__DIR__ . '/image.h');
-        $this->ffi_iupim = FFI::load(__DIR__ . '/iupim.h');
-        return $this;
-    }
-
-    public function imFile() {
-        return $this->imFile = $this->ffi_im->new('imFile*');
-    }
-
-    public function imImage() {
-        return $this->imImage = $this->ffi_image->new('imImage*');
+    
+    public static function canvasPtr() {
+        return self::$cdCanvasPtr;
     }
     
     public function __call($name, $arguments = []) {
-        $name = 'im' . ucfirst($name);
-        $number = count($arguments);
-        return $this->ffi_image->$name(...$arguments);
-    }
-
-    public function imFileImageLoadBitmap($file, $index, $error) {
-        return $this->ffi_image->imFileImageLoadBitmap($file, $index, $error);
-    }
-
-    public function imImageRemoveAlpha($image) {
-        return $this->ffi_image->imImageRemoveAlpha($image);
-    }
-
-    public function imImageCreateBased($image, $width, $height, $color_space, $data_type) {
-        return $this->ffi_image->imImageCreateBased($image, $width, $height, $color_space, $data_type);
-    }
-
-    public function imImageDestroy($image) {
-        return $this->ffi_image->imImageDestroy($image);
-    }
-
-    public function imcdCanvasPutImage($_canvas, $_image, $_w, $_h, $_x = 0, $_y = 0, $_xmin = 0, $_xmax = 0, $_ymin = 0, $_ymax = 0) {
-        $this->ffi_image->imcdCanvasPutImage($_canvas, $_image, $_x, $_y, $_w, $_h, $_xmin, $_xmax, $_ymin, $_ymax);
-    }
-
-    public function fileopen($fileName, $error) {
-        return $this->ffi_im->imFileOpen($fileName, $error);
-    }
-
-    public function fileopenAs($fileName, $format, $error) {
-        return $this->ffi_im->imFileOpenAs($fileName, $format, $error);
-    }
-
-    public function new($fileName, $format, $error) {
-        return $this->ffi_im->imFileNew($fileName, $format, $error);
-    }
-
-    public function imClose($file) {
-        return $this->ffi_im->imFileClose($file);
-    }
-
-    public function handle($file, $index) {
-        return $this->ffi_im->imFileHandle($file, $index);
-    }
-
-    public function getinfo($file, $format, $compression, $image_count) {
-        return $this->ffi_im->imFileGetInfo($file, $format, $compression, $image_count);
-    }
-
-    public function setinfo($file, $compression) {
-        return $this->ffi_im->imFileSetInfo($file, $compression);
-    }
-
-    public function imFileSetAttribute($file, $attrib, $data_type, $count, $data) {
-        return $this->ffi_im->imFileSetAttribute($file, $attrib, $data_type, $count, $data);
-    }
-
-    public function imFileSetAttribInt($file, $attrb, $data_type, $value) {
-        return $this->ffi_im->imFileSetAtrribInteger($file, $attrb, $data_type, $value);
-    }
-
-    public function imFileSetAttribReal($file, $attrib, $data_type, $value) {
-        return $this->ffi_im->imFileSetAttribReal($file, $attrib, $data_type, $value);
-    }
-
-    public function imFileSetAttribString($file, $attrib, $value) {
-        return $this->ffi_im->imFileSetAttribString($file, $attrib, $value);
-    }
-
-    public function imFileGetAttribute($ifile, $attrib, $data_type, $count) {
-        return $this->ffi_im->imFileGetAttribute($ifile, $attrib, $data_type, $count);
-    }
-
-    public function imFileGetAttribInteger($ifile, $attrib, $index) {
-        return $this->ffi_im->imFileGetAttribInteger($ifile, $attrib, $index);
-    }
-
-    public function imFileGetAttribReal($ifile, $attrib, $index) {
-        return $this->ffi_im->imFileGetAttribReal($ifile, $attrib, $index);
-    }
-
-    public function imFileGetAttribString($ifile, $attrib) {
-        return $this->ffi_im->imFileGetAttribString($ifile, $attrib);
-    }
-
-    public function imFileGetAttributeList($ifile, $attrib, $attrib_count) {
-        return $this->ffi_im->imFileGetAttributeList($ifile, $attrib, $attrib_count);
-    }
-
-    public function GetPalette($ifile, $palette, $palette_count) {
-        return $this->ffi_im->imFileGetPalette($ifile, $palette, $palette_count);
-    }
-
-    public function SetPalette($ifile, $palette, $palette_count) {
-        return $this->ffi_im->imFileSetPalette($ifile, $palette, $palette_count);
-    }
-
-    public function ReadImageInfo($ifile, $index, $width, $height, $file_color_mode, $file_data_type) {
-        return $this->ffi_im->imFileReadImageInfo($ifile, $index, $width, $height, $file_color_mode, $file_data_type);
-    }
-
-    public function WriteImageInfo($ifile, $width, $height, $user_color_mode, $user_data_type) {
-        return $this->ffi_im->imFileWriteImageInfo($ifile, $width, $height, $user_color_mode, $user_data_type);
-    }
-
-    public function ReadImageData($ifile, $data, $convert2bitmap, $color_mode_flags) {
-        return $this->ffi_im->imFileReadImageData($ifile, $data, $convert2bitmap, $color_mode_flags);
-    }
-
-    public function WriteImageData($ifile, $data) {
-        return $this->ffi_im->imFileWriteImageData($ifile, $data);
-    }
-
-    public function FormatRegisterInternal() {
-        return $this->ffi_im->imFormatRegisterInternal(void);
-    }
-
-    public function FormatRemoveAll() {
-        return $this->ffi_im->imFormatRemoveAll(void);
-    }
-
-    public function FormatList($format_list, $format_count) {
-        return $this->ffi_im->imFormatList($format_list, $format_count);
-    }
-
-    public function FormatInfo($format, $desc, $ext, $can_sequence) {
-        return $this->ffi_im->imFormatInfo($format, $desc, $ext, $can_sequence);
-    }
-
-    public function FormatInfoExtra($format, $extra) {
-        return $this->ffi_im->imFormatInfoExtra($format, $extra);
-    }
-
-    public function FormatCompressions($format, $comp, $comp_count, $color_mode, $data_type) {
-        return $this->ffi_im->imFormatCompressions($format, $comp, $comp_count, $color_mode, $data_type);
-    }
-
-    public function FormatCanWriteImage($format, $compression, $color_mode, $data_type) {
-        return $this->ffi_im->imFormatCanWriteImage($format, $compression, $color_mode, $data_type);
-    }
-
-}
-
-class extra {
-
-    public $ffi_extra;
-
-    public function __construct() {
-        $this->ffi_extra = \FFI::load(__DIR__ . '/controls.h');
-        return $this;
-    }
-
-    function init() {
-        return $this->ffi_extra->IupControlsOpen();
-    }
-
-    public function Cells() {
-        return $this->ffi_extra->IupCells();
-    }
-
-    public function Matrix($action = null) {
-        return $this->ffi_extra->IupMatrix($action);
-    }
-
-    public function MatrixList() {
-        return $this->ffi_extra->IupMatrixList();
-    }
-
-    public function MatrixEx() {
-        return $this->ffi_extra->MatrixEx();
+        $name = 'cd' . ucfirst($name);
+        return $this->ffi_cd->$name(...$arguments);
     }
 
 }

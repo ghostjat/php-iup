@@ -2,37 +2,34 @@
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use iup\core;
+$iup = new iup\core();
 
-$iup = new core();
-$iup->init();
+$txt = $iup->label("timer example");
+$iup->setHandle("quit", $txt);
 
-$txt = $iup->Label("timer example");
-$iup->SetHandle("quit", $txt);
+$dlg = $iup->dialog($iup->vbox($txt));
+$iup->setAttribute($dlg, "TITLE", "timer example");
+$iup->setAttribute($dlg, "SIZE", "200x200");
+$iup->showXY($dlg, $iup::CENTER, $iup::CENTER);
 
-$dlg = $iup->Dialog($iup->Vbox($txt));
-$iup->SetAttribute($dlg, "TITLE", "timer example");
-$iup->SetAttribute($dlg, "SIZE", "200x200");
-$iup->ShowXY($dlg, $iup::CENTER, $iup::CENTER);
+$timer_1 = $iup->timer();
+$timer_2 = $iup->timer();
 
-$timer_1 = $iup->Timer();
-$timer_2 = $iup->Timer();
+$iup->setAttribute($timer_1, "TIME", "1000");
+$iup->setAttribute($timer_1, "RUN", "YES");
+$iup->setCallback($timer_1, "ACTION_CB", "timer_cb");
 
-$iup->SetAttribute($timer_1, "TIME", "1000");
-$iup->SetAttribute($timer_1, "RUN", "YES");
-$iup->SetCallback($timer_1, "ACTION_CB", "timer_cb");
+$iup->setAttribute($timer_2, "TIME", "4000");
+$iup->setAttribute($timer_2, "RUN", "YES");
+$iup->setCallback($timer_2, "ACTION_CB", "timer_cb");
 
-$iup->SetAttribute($timer_2, "TIME", "4000");
-$iup->SetAttribute($timer_2, "RUN", "YES");
-$iup->SetCallback($timer_2, "ACTION_CB", "timer_cb");
-
-$iup->MainLoop();
+$iup->mainLoop();
 
 /* Timers are NOT automatically destroyed, must be manually done */
-$iup->Destroy($timer_1);
-$iup->Destroy($timer_2);
+$iup->destroy($timer_1);
+$iup->destroy($timer_2);
 
-$iup->Close();
+$iup->close();
 
 function timer_cb($n) {
     global $iup, $timer_1, $timer_2;

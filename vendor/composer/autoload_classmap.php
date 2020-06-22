@@ -6,5 +6,12 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'iup\\canvas' => $baseDir . '/src/iup.php',
+    'iup\\cd' => $baseDir . '/src/iup.php',
     'iup\\core' => $baseDir . '/src/iup.php',
+    'iup\\extra' => $baseDir . '/src/iup.php',
+    'iup\\im' => $baseDir . '/src/iup.php',
+    'iup\\image' => $baseDir . '/src/iup.php',
+    'iup\\scintilla' => $baseDir . '/src/iup.php',
+    'iup\\webView' => $baseDir . '/src/iup.php',
 );

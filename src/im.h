@@ -1,5 +1,5 @@
 #define FFI_SCOPE "iupim"
-#define FFI_LIB "dll_libs/iup/im.dll"
+#define FFI_LIB "/usr/lib/libim.so"
 
 
 typedef struct _imFile  imFile;

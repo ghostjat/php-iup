@@ -1,79 +1,84 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
+/* 
+ * php-iup demo for scintilla-editor
+ * @author shubham chaudhary
+ */
+require __DIR__.'/../vendor/autoload.php';
 
-use iup\scintilla;
+$iup = new iup\core();
 
-$scn = new scintilla();
-$scn->scintillaOpen();
-$sci = $scn->scintilla();
-$scn->SetAttribute($sci, "MULTILINE", "YES");
-$scn->SetAttribute($sci, "EXPAND", "YES");
-$scn->SetAttribute($sci, "NAME", "MULTITEXT");
-$scn->SetAttribute($sci, "DIRTY", "NO");
-$scn->SetAttribute($sci, "STYLEFGCOLOR34", "255 0 0");
-$scn->SetAttribute($sci, "LEXERLANGUAGE", "php");
-//$scn->SetAttribute($sci, "STYLEFONT32", "Courier New");
-$scn->SetAttribute($sci, "STYLEFONT32", "Consolas");
-$scn->SetAttribute($sci, "STYLEFONTSIZE32", "10");
-$scn->SetAttribute($sci, "STYLECLEARALL", "Yes");
-$scn->SetAttribute($sci, "STYLEFGCOLOR1", "0 128 0");    // 1-C comment 
-$scn->SetAttribute($sci, "STYLEFGCOLOR2", "0 128 0");    // 2-C++ comment line 
-$scn->SetAttribute($sci, "STYLEFGCOLOR4", "128 0 0");    // 4-Number 
-$scn->SetAttribute($sci, "STYLEFGCOLOR5", "0 0 255");    // 5-Keyword 
-$scn->SetAttribute($sci, "STYLEFGCOLOR6", "160 20 20");  // 6-String 
-$scn->SetAttribute($sci, "STYLEFGCOLOR7", "128 0 0");    // 7-Character 
-$scn->SetAttribute($sci, "STYLEFGCOLOR9", "0 0 255");    // 9-Preprocessor block 
-$scn->SetAttribute($sci, "STYLEFGCOLOR10", "255 0 255"); // 10-Operator 
-$scn->SetAttribute($sci, "STYLEBOLD10", "YES");
-$scn->SetAttribute($sci, "KEYWORDS0", 'clone protected private static:: static parent:: __construct  __PHP_Incomplete_Class and or xor __file__ __line__ array as break case cfunction class const continue declare default die do echo else elseif empty enddeclare endfor endforeach endif endswitch endwhile eval exit extends for foreach function global if include include_once isset list new old_function print require require_once return static switch unset use var while __function__ __class__ ');
-$scn->SetAttribute($sci, "STYLEHOTSPOT6", "YES");
-$scn->SetAttribute($sci, "MARGINWIDTH0", "50");
-$scn->SetAttribute($sci, "PROPERTY", "fold=1");
-$scn->SetAttribute($sci, "PROPERTY", "fold.compact=0");
-$scn->SetAttribute($sci, "PROPERTY", "fold.comment=1");
-$scn->SetAttribute($sci, "PROPERTY", "fold.preprocessor=1");
+$scn = new iup\scintilla();
+$sci = $scn->scintilla_init();
+
+$iup->setAttribute($sci, "MULTILINE", "YES");
+$iup->setAttribute($sci, "EXPAND", "YES");
+$iup->setAttribute($sci, "NAME", "MULTITEXT");
+$iup->setAttribute($sci, "DIRTY", "NO");
+$iup->setAttribute($sci, "STYLEFGCOLOR34", "255 0 0");
+$iup->setAttribute($sci, "LEXERLANGUAGE", "php");
+//$iup->setAttribute($sci, "STYLEFONT32", "Courier New");
+$iup->setAttribute($sci, "STYLEFONT32", "Consolas");
+$iup->setAttribute($sci, "STYLEFONTSIZE32", "10");
+$iup->setAttribute($sci, "STYLECLEARALL", "Yes");
+$iup->setAttribute($sci, "STYLEFGCOLOR1", "0 128 0");    // 1-C comment 
+$iup->setAttribute($sci, "STYLEFGCOLOR2", "0 128 0");    // 2-C++ comment line 
+$iup->setAttribute($sci, "STYLEFGCOLOR4", "128 0 0");    // 4-Number 
+$iup->setAttribute($sci, "STYLEFGCOLOR5", "0 0 255");    // 5-Keyword 
+$iup->setAttribute($sci, "STYLEFGCOLOR6", "160 20 20");  // 6-String 
+$iup->setAttribute($sci, "STYLEFGCOLOR7", "128 0 0");    // 7-Character 
+$iup->setAttribute($sci, "STYLEFGCOLOR9", "0 0 255");    // 9-Preprocessor block 
+$iup->setAttribute($sci, "STYLEFGCOLOR10", "255 0 255"); // 10-Operator 
+$iup->setAttribute($sci, "STYLEBOLD10", "YES");
+$iup->setAttribute($sci, "KEYWORDS0", 'clone protected private static:: static parent:: __construct  __PHP_Incomplete_Class and or xor __file__ __line__ array as break case cfunction class const continue declare default die do echo else elseif empty enddeclare endfor endforeach endif endswitch endwhile eval exit extends for foreach function global if include include_once isset list new old_function print require require_once return static switch unset use var while __function__ __class__ ');
+$iup->setAttribute($sci, "STYLEHOTSPOT6", "YES");
+$iup->setAttribute($sci, "MARGINWIDTH0", "50");
+$iup->setAttribute($sci, "PROPERTY", "fold=1");
+$iup->setAttribute($sci, "PROPERTY", "fold.compact=0");
+$iup->setAttribute($sci, "PROPERTY", "fold.comment=1");
+$iup->setAttribute($sci, "PROPERTY", "fold.preprocessor=1");
 
 /* line numbers */
-$scn->SetInt($sci, "MARGINWIDTH0", 30);
-$scn->SetAttribute($sci, "MARGINSENSITIVE0", "YES");
+$iup->setInt($sci, "MARGINWIDTH0", 30);
+$iup->setAttribute($sci, "MARGINSENSITIVE0", "YES");
 
 /* bookmarks */
-$scn->SetInt($sci, "MARGINWIDTH1", 15);
-$scn->SetAttribute($sci, "MARGINTYPE1", "SYMBOL");
-$scn->SetAttribute($sci, "MARGINSENSITIVE1", "YES");
-$scn->SetAttribute($sci, "MARGINMASKFOLDERS1", "YES");
+$iup->setInt($sci, "MARGINWIDTH1", 15);
+$iup->setAttribute($sci, "MARGINTYPE1", "SYMBOL");
+$iup->setAttribute($sci, "MARGINSENSITIVE1", "YES");
+$iup->setAttribute($sci, "MARGINMASKFOLDERS1", "YES");
 
-$scn->SetAttribute($sci, "MARKERDEFINE", "FOLDER=PLUS");
-$scn->SetAttribute($sci, "MARKERDEFINE", "FOLDEROPEN=MINUS");
-$scn->SetAttribute($sci, "MARKERDEFINE", "FOLDEREND=EMPTY");
-$scn->SetAttribute($sci, "MARKERDEFINE", "FOLDERMIDTAIL=EMPTY");
-$scn->SetAttribute($sci, "MARKERDEFINE", "FOLDEROPENMID=EMPTY");
-$scn->SetAttribute($sci, "MARKERDEFINE", "FOLDERSUB=EMPTY");
-$scn->SetAttribute($sci, "MARKERDEFINE", "FOLDERTAIL=EMPTY");
-$scn->SetAttribute($sci, "FOLDFLAGS", "LINEAFTER_CONTRACTED");
+$iup->setAttribute($sci, "MARKERDEFINE", "FOLDER=PLUS");
+$iup->setAttribute($sci, "MARKERDEFINE", "FOLDEROPEN=MINUS");
+$iup->setAttribute($sci, "MARKERDEFINE", "FOLDEREND=EMPTY");
+$iup->setAttribute($sci, "MARKERDEFINE", "FOLDERMIDTAIL=EMPTY");
+$iup->setAttribute($sci, "MARKERDEFINE", "FOLDEROPENMID=EMPTY");
+$iup->setAttribute($sci, "MARKERDEFINE", "FOLDERSUB=EMPTY");
+$iup->setAttribute($sci, "MARKERDEFINE", "FOLDERTAIL=EMPTY");
+$iup->setAttribute($sci, "FOLDFLAGS", "LINEAFTER_CONTRACTED");
 
-$scn->SetCallback($sci, "CARET_CB", 'multitext_caret_cb');
-$scn->SetCallback($sci, "VALUECHANGED_CB", 'multitext_valuechanged_cb');
-$scn->SetCallback($sci, "DROPFILES_CB", 'dropfiles_cb');
-$scn->SetCallback($sci, "MARGINCLICK_CB", 'marginclick_cb');
+$iup->setCallback($sci, "CARET_CB", 'multitext_caret_cb');
+$iup->setCallback($sci, "VALUECHANGED_CB", 'multitext_valuechanged_cb');
+$iup->setCallback($sci, "DROPFILES_CB", 'dropfiles_cb');
+$iup->setCallback($sci, "MARGINCLICK_CB", 'marginclick_cb');
 
-$lbl_statusbar = $scn->Label("Lin 1, Col 1");
-$scn->SetAttribute($lbl_statusbar, "NAME", "STATUSBAR");
-$scn->SetAttribute($lbl_statusbar, "EXPAND", "HORIZONTAL");
-$scn->SetAttribute($lbl_statusbar, "PADDING", "10x5");
 
-$dlg = $scn->Dialog($scn->ffi->IupVbox($sci, $lbl_statusbar, null));
+$lbl_statusbar = $iup->label("Lin 1, Col 1");
+$iup->setAttribute($lbl_statusbar, "NAME", "STATUSBAR");
+$iup->setAttribute($lbl_statusbar, "EXPAND", "HORIZONTAL");
+$iup->setAttribute($lbl_statusbar, "PADDING", "10x5");
 
-$scn->SetAttribute($dlg, "TITLE", "Php-Iup-Scintilla");
-$scn->SetAttribute($dlg, "RASTERSIZE", "700x500");
-$scn->SetAttribute($dlg, "MARGIN", "10x10");
+$dlg = $iup->dialog($iup->ffi_iup->IupVbox($sci, $lbl_statusbar, null));
 
-$scn->Show($dlg);
-$scn->SetAttribute($dlg, "RASTERSIZE", NULL);
+$iup->setAttribute($dlg, "TITLE", "Php-Iup-Scintilla");
+$iup->setAttribute($dlg, "RASTERSIZE", "700x500");
+$iup->setAttribute($dlg, "MARGIN", "10x10");
 
-$scn->MainLoop();
-$scn->close();
+$iup->show($dlg);
+$iup->setAttribute($dlg, "RASTERSIZE", NULL);
+
+$iup->mainLoop();
+$iup->close();
 
 /* * *************Utilities*********************************** */
 
