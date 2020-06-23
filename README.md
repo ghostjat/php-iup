@@ -6,7 +6,9 @@ php7.4 interface to the IUP toolkit for building GUI's.
 
 Description
 -----------
-[IUP][2] is a multi-platform toolkit for
+[IUP-Toolkit](http://www.tecgraf.puc-rio.br/iup) 
+
+IUP is a multi-platform toolkit for
 building graphical user interfaces. IUP's purpose is to allow a program
 source code to be compiled in different systems without any modification.
 Its main advantages are:
