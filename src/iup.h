@@ -5,9 +5,115 @@ enum {
     IUP_RECBINARY, IUP_RECTEXT
 };
 
+typedef enum _InativeType {
+    IUP_TYPEVOID, /**< No native representation - HBOX, VBOX, ZBOX, FILL, RADIO (handle==(void*)-1 always) */
+    IUP_TYPECONTROL, /**< Native controls - BUTTON, LABEL, TOGGLE, LIST, TEXT, MULTILINE, FRAME, others */
+    IUP_TYPECANVAS, /**< Drawing canvas, also used as a base control for custom controls. */
+    IUP_TYPEDIALOG, /**< DIALOG */
+    IUP_TYPEIMAGE, /**< IMAGE */
+    IUP_TYPEMENU, /**< MENU, SUBMENU, ITEM, SEPARATOR */
+    IUP_TYPEOTHER /**< Other resources - TIMER, CLIPBOARD, USER, etc */
+} InativeType;
+
+typedef struct Iclass_ Iclass;
+struct _Itable;
+typedef struct _Itable Itable;
+typedef struct _InativeHandle InativeHandle;
 typedef struct Ihandle_ Ihandle;
+typedef struct _IcontrolData IcontrolData;
+
+typedef struct _iupCanvas {
+  int sb;    /* scrollbar configuration, valid only after map, use iupBaseGetScrollbar before map */
+  double posx, posy;
+  int inside_resize;
+} iupCanvas;
+
+struct _IcontrolData {
+    iupCanvas canvas; /* from IupCanvas (must reserve it) */
+
+    /* mouse interaction state */
+    int h_down,
+    si_down;
+
+    /* cursor positioning */
+    int h_x, h_y,
+    si_x, si_y;
+
+    /* HSI-XY coordinate conversion */
+    int xc, yc, /* center */
+    R, /* maximum radius available inside the size of the control */
+    Ix, /* x coordinate where S is 0 */
+    Iy1, /* y coordinate where I is 0 */
+    Iy2, /* y coordinate where I is 1 */
+    SxMax; /* x coordinate where S is 1 and I = 0.5 */
+
+    /* visual appearance control */
+    int w, h;
+    int has_focus;
+    long bgcolor;
+
+    /* attributes */
+    double hue, /* 0<=H<=359 */
+    saturation, /* 0<=S<=1 */
+    intensity; /* 0<=I<=1 */
+    unsigned char red, green, blue; /* 0<=x<=255 */
+
+    Ihandle *image;
+};
+
+struct Ihandle_ {
+    char sig [4];
+    Iclass* iclass;
+    Itable* attrib;
+    int serial;
+    InativeHandle* handle;
+    int expand;
+    int flags;
+    int x;
+    int y;
+    int userwidth;
+    int userheight;
+    int naturalwidth;
+    int naturalheight;
+    int currentwidth;
+    int currentheight;
+    Ihandle* parent;
+    Ihandle* firstchild;
+    Ihandle* brother;
+    IcontrolData* data;
+};
+
+struct Iclass {
+    const char* name;
+    const char* cons;
+    const char* format;
+    const char* format_attr;
+    InativeType nativetype;
+    int childtype;
+    int is_interactive;
+    int has_attrib_id;
+    int is_internal;
+    Iclass* parent;
+    Itable* attrib_func;
+    Iclass* (*New)(void);
+    void(*Release)(Iclass *ic);
+    int(*Create)(Ihandle *ih, void **params);
+    int(*Map)(Ihandle *ih);
+    void(*UnMap)(Ihandle *ih);
+    void(*Destroy)(Ihandle *ih);
+    void *(*GetInnerNativeContainerHandle)(Ihandle *ih, Ihandle *child);
+    void(*ChildAdded)(Ihandle *ih, Ihandle *child);
+    void(*ChildRemoved)(Ihandle *ih, Ihandle *child, int pos);
+    void(*LayoutUpdate)(Ihandle *ih);
+    void(*ComputeNaturalSize)(Ihandle *ih, int *w, int *h, int *children_expand);
+    void(*SetChildrenCurrentSize)(Ihandle *ih, int shrink);
+    void(*SetChildrenPosition)(Ihandle *ih, int x, int y);
+    int(*DlgPopup)(Ihandle *ih, int x, int y);
+};
+
+
 typedef int (*Icallback)(Ihandle*);
-typedef int (*Iparamcb) (Ihandle* dialog, int param_index,void* user_data);
+typedef int (*Iparamcb) (Ihandle* dialog, int param_index, void* user_data);
 
 extern int IupOpen(int *argc, char ***argv);
 //void IupImageLibOpen(void);
@@ -122,7 +228,7 @@ extern void IupGetRGBId2(Ihandle* ih, const char* name, int lin, int col, unsign
 
 extern void IupSetGlobal(const char* name, const char* value);
 extern void IupSetStrGlobal(const char* name, const char* value);
-extern char* IupGetGlobal(Ihandle* ih,const char* name);
+extern char* IupGetGlobal(Ihandle* ih, const char* name);
 
 extern Ihandle* IupSetFocus(Ihandle* ih);
 extern Ihandle* IupGetFocus(void);
@@ -309,3 +415,75 @@ extern Ihandle* IupLayoutDialog(Ihandle* dialog);
 extern Ihandle* IupElementPropertiesDialog(Ihandle* elem);
 extern Ihandle* IupGlobalsDialog(void);
 
+
+struct _cdCanvas;
+
+typedef int (*IFidle)(void); /* idle */
+typedef void (*IFentry)(void); /* entry */
+
+typedef void (*IFi)(int); /* globalentermodal_cb, globalleavemodal_cb,  */
+typedef void (*IFs)(char*); /* openurl_cb */
+typedef void (*IFii)(int, int); /* globalkeypress_cb */
+typedef void (*IFiis)(int, int, char*); /* globalmotion_cb, openfiles_cb */
+typedef void (*IFiiiis)(int, int, int, int, char*); /* globalbutton_cb */
+typedef void (*IFfiis)(float, int, int, char*); /* globalwheel_cb */
+typedef void (*IFvs)(void*, char*); /* handleadd_cb, handleremove_cb, imagecreate_cb, imagedestroy_cb */
+
+typedef int (*IFn)(Ihandle*); /* default definition, same as Icallback */
+typedef int (*IFni)(Ihandle*, int); /* k_any, show_cb, toggle_action, spin_cb, branchopen_cb, branchclose_cb, executeleaf_cb, showrename_cb, rightclick_cb, extended_cb, height_cb, width_cb */
+typedef int (*IFnii)(Ihandle*, int, int); /* resize_cb, caret_cb, matrix_mousemove_cb, enteritem_cb, leaveitem_cb, scrolltop_cb, dropcheck_cb, selection_cb, select_cb, switch_cb, scrolling_cb, vspan_cb, hspan_cb */
+typedef int (*IFniii)(Ihandle*, int, int, int); /* trayclick_cb, edition_cb */
+typedef int (*IFniiii)(Ihandle*, int, int, int, int); /* dragdrop_cb */
+typedef int (*IFniiiiiiC)(Ihandle*, int, int, int, int, int, int, struct _cdCanvas*); /* draw_cb */
+typedef int (*IFniiiiii)(Ihandle*, int, int, int, int, int, int); /* OLD draw_cb */
+typedef int (*IFnsidv)(Ihandle*, char*, int, double, void*); /* postmessage_cb */
+
+typedef int (*IFnff)(Ihandle*, float, float); /* canvas_action, plotmotion_cb (pplot) */
+typedef int (*IFniff)(Ihandle*, int, float, float); /* scroll_cb */
+typedef int (*IFnfiis)(Ihandle*, float, int, int, char*); /* wheel_cb */
+
+typedef int (*IFnsVi)(Ihandle*, char*, void*, int); /* dragdata_cb */
+typedef int (*IFnsViii)(Ihandle*, char*, void*, int, int, int); /* dropdata_cb */
+typedef int (*IFnsiii)(Ihandle*, char*, int, int, int); /* dropfiles_cb */
+typedef int (*IFnssi)(Ihandle*, char*, char*, int); /* dragfilecreatename_cb */
+
+typedef int (*IFnnii)(Ihandle*, Ihandle*, int, int); /* drop_cb */
+typedef int (*IFnn)(Ihandle*, Ihandle*); /* savemarkers_cb, restoremarkers_cb */
+typedef int (*IFnnn)(Ihandle*, Ihandle*, Ihandle*); /* tabchange_cb */
+typedef int (*IFnss)(Ihandle*, char *, char *); /* file_cb */
+typedef int (*IFns)(Ihandle*, char *); /* multiselect_cb */
+typedef int (*IFnsi)(Ihandle*, char *, int); /* copydata_cb */
+typedef int (*IFnis)(Ihandle*, int, char *); /* text_action, multiline_action, edit_cb, rename_cb */
+typedef int (*IFnsii)(Ihandle*, char*, int, int); /* list_action */
+typedef int (*IFniis)(Ihandle*, int, int, char*); /* motion_cb, click_cb, value_edit_cb */
+typedef int (*IFniiis)(Ihandle*, int, int, int, char*); /* touch_cb, dblclick_cb */
+typedef int (*IFniiiis)(Ihandle*, int, int, int, int, char*); /* button_cb, matrix_action, mousemotion_cb */
+typedef int (*IFniiiiiis)(Ihandle*, int, int, int, int, int, int, char*); /* mouseclick_cb */
+
+typedef int (*IFnIi)(Ihandle*, int*, int); /* multiselection_cb, multiunselection_cb */
+typedef int (*IFnd)(Ihandle*, double); /* mousemove_cb, button_press_cb, button_release_cb */
+typedef int (*IFniiIII)(Ihandle*, int, int, int*, int*, int*); /* fgcolor_cb, bgcolor_cb */
+typedef int (*IFniinsii)(Ihandle*, int, int, Ihandle*, char*, int, int); /* dropselect_cb */
+typedef int (*IFnccc)(Ihandle*, unsigned char, unsigned char, unsigned char); /* drag_cb, change_cb */
+typedef int (*IFniIIII)(Ihandle*, int, int*, int*, int*, int*); /* multitouch_cb */
+
+typedef int (*IFnC)(Ihandle*, struct _cdCanvas*); /* postdraw_cb, predraw_cb */
+typedef int (*IFniiff)(Ihandle*, int, int, float, float); /* delete_cb (pplot) */
+typedef int (*IFniiffi)(Ihandle*, int, int, float, float, int); /* select_cb (pplot) */
+typedef int (*IFniidd)(Ihandle*, int, int, double, double); /* delete_cb */
+typedef int (*IFniiddi)(Ihandle*, int, int, double, double, int); /* select_cb */
+typedef int (*IFniiddiddi)(Ihandle*, int, int, double, double, int, double, double, int); /* clicksegment_cb */
+typedef int (*IFniiffFF)(Ihandle*, int, int, float, float, float*, float*); /* edit_cb */
+typedef int (*IFniiffs)(Ihandle*, int, int, float, float, char*); /* plotbutton_cb (pplot) */
+typedef int (*IFniidds)(Ihandle*, int, int, double, double, char*); /* plotbutton_cb */
+typedef int (*IFndds)(Ihandle*, double, double, char*); /* plotmotion_cb */
+typedef int (*IFnssds)(Ihandle*, char*, char*, double, char*); /* plottickformat_cb */
+
+typedef char* (*sIFnii)(Ihandle*, int, int); /* value_cb, font_cb */
+typedef char* (*sIFni)(Ihandle*, int); /* cell_cb */
+typedef char* (*sIFniis)(Ihandle*, int, int, char*); /* translatevalue_cb */
+
+typedef double (*dIFnii)(Ihandle*, int, int); /* numericgetvalue_cb */
+typedef int (*IFniid)(Ihandle*, int, int, double); /* numericsetvalue_cb */
+
+typedef void (*IFniiv)(Ihandle*, int, int, void*); /* android_onactivityresult_cb */
