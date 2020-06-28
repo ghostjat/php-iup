@@ -245,6 +245,11 @@ class core {
         return self::$ihandle_ptr;
     }
     
+    public function string(FFI\CData $data){
+        return \FFI::string($data);
+    }
+
+
     protected function ImageLibOpen() {
         return $this->ffi_imgLib->IupImageLibOpen();
     }
@@ -292,6 +297,48 @@ class core {
     
     public function getValue($ih){
         return $this->getAttribute($ih, 'VALUE');
+    }
+    
+    /**
+     * 
+     * @param \iup\ihandle $ih
+     * @param string $numCol
+     * @param string $numLin
+     * @param string $cx
+     * @param string $cy
+     * @param string $expand
+     */
+    protected function _matrixConfig($ih,$numCol=3,$numLin=3,$cx=null,$cy=null,$expand='yes'){
+        $this->setAttribute($ih, "NUMCOL", (string)$numCol);
+        $this->setAttribute($ih, "NUMLIN", (string)$numLin);
+        $this->setAttribute($ih, "NUMCOL_VISIBLE", (string)$numCol);
+        $this->setAttribute($ih, "NUMLIN_VISIBLE", (string)$numLin);
+        $this->setAttribute($ih, "EXPAND", (string)$expand);
+        $this->setAttribute($ih, "CX", (string)$cx);
+        $this->setAttribute($ih, "CY", (string)$cy);
+    }
+    
+    /**
+     * 
+     * @param \iup\ihandle $ih
+     * @param array $data
+     * all the data values must be string cast
+     */
+    public function matrixData($ih,array $data){
+        $numCol = count(array_keys($data));
+        $numLin = count($data[array_key_first($data)]);
+        $this->_matrixConfig($ih, $numCol-1, $numLin);
+        $h = 0;
+        
+        foreach ($data as $header => $value) {
+            $this->setAttribute($ih, "0:$h", $header);
+            $l=1;
+            foreach ($value as $val) {
+                $this->setAttribute($ih, "$l:$h", $val);
+                $l++;
+            }
+            $h++;
+        }
     }
 
 
@@ -595,6 +642,15 @@ class core {
         return $this->ffi_iup->IupGetCallback($ih, $name);
     }
     
+    public function getClassName($ih){
+        return $this->ffi_iup->IupGetClassName($ih);
+    }
+    
+    public function getClassType($ih){
+        return $this->ffi_iup->IupGetClassType($ih);
+    }
+
+
     /**
      * 
      * @param type $ih
@@ -693,23 +749,41 @@ class core {
     public function image($width, $hight, $pixmap = []) {
         $size = sizeof($pixmap);
         $img = FFI::new("unsigned char[$size]");
-        for ($i = 0; $i < count($pixmap); $i++) {
+        for ($i = 0; $i < count($pixmap); ++$i) {
             $img[$i] = $pixmap[$i];
         }
         return $this->ffi_iup->IupImage($width, $hight, $img);
     }
-
+    
+    /**
+     * 
+     * @param type $widht
+     * @param type $height
+     * @param type $pixmap
+     * @return type
+     */
     public function imageRGB($widht, $height, $pixmap) {
         $size = sizeof($pixmap);
         $img = FFI::new("unsigned char[$size]");
-        for ($i = 0; $i < count($pixmap); $i++) {
+        for ($i = 0; $i < count($pixmap); ++$i) {
             $img[$i] = $pixmap[$i];
         }
         return $this->ffi_iup->IupImageRGB($widht, $height, $img);
     }
-
+    /**
+     * 
+     * @param type $width
+     * @param type $height
+     * @param type $pixmap
+     * @return type
+     */
     public function imageRGBA($width, $height, $pixmap) {
-        return $this->ffi_iup->IupImageRGBA($width, $height, $pixmap);
+        $size = sizeof($pixmap);
+        $img = FFI::new("unsigned char[$size]");
+        for ($i = 0; $i < count($pixmap); ++$i) {
+            $img[$i] = $pixmap[$i];
+        }
+        return $this->ffi_iup->IupImageRGBA($width, $height, $img);
     }
 
     public function item($title, $action = null) {
@@ -732,9 +806,20 @@ class core {
      * @param int $marks
      * @return type
      */
-    public function listDialog($type, $title, $size, $list, $op, $max_col, $max_lin, $marks) {
-        return $this->ffi_iup->IupListDialog($type, $title, $size, $list, $op, $max_col, $max_lin, $marks);
-    }
+    #public function listDialog($type, $title, $size, $list, $op, $max_col, $max_lin, $marks) {
+        #$str = implode("", $list);
+        #$sizeOf = strlen($str);
+        #$items = FFI::new("char *[$sizeOf]");
+        #FFI::memcpy($items, $str, $sizeOf);
+        #FFI::cast(FFI::type('char**'), $items);
+        #$sizeof = sizeof($marks);
+        #$mark = FFI::new("int[$sizeof]");
+        #for ($i = 0; $i < count($marks); ++$i) {
+        #    $mark[$i] = $marks[$i];
+        #}
+        #return $this->ffi_iup->IupListDialog($type, $title, $size, $items, $op, $max_col, $max_lin,null);
+        
+    #}
     
     public function layoutDialog($dialog) {
         return $this->ffi_iup->IupLayoutDialog($dialog);
@@ -1150,6 +1235,10 @@ class core {
 
     public function getGlobal($ih, $name) {
         return $this->ffi_iup->IupGetGlobal($ih, $name);
+    }
+    
+    public static function strcpy($dst,$src){
+        $ffi = FFI::cdef("");
     }
 }
 
