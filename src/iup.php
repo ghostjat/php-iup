@@ -308,12 +308,13 @@ class core {
      * @param string $cy
      * @param string $expand
      */
-    protected function _matrixConfig($ih,$numCol=3,$numLin=3,$cx=null,$cy=null,$expand='yes'){
-        $this->setAttribute($ih, "NUMCOL", (string)$numCol);
-        $this->setAttribute($ih, "NUMLIN", (string)$numLin);
+    protected function _matrixConfig($ih,$numCol=3,$numLin=3,$cx=null,$cy=null,$expand='yes',$resize='yes'){
+        $this->setInt($ih, "NUMCOL", $numCol);
+        $this->setInt($ih, "NUMLIN", $numLin);
         $this->setAttribute($ih, "NUMCOL_VISIBLE", (string)$numCol);
         $this->setAttribute($ih, "NUMLIN_VISIBLE", (string)$numLin);
         $this->setAttribute($ih, "EXPAND", (string)$expand);
+        $this->setAttribute($ih, "RESIZEMATRIX", $resize);
         $this->setAttribute($ih, "CX", (string)$cx);
         $this->setAttribute($ih, "CY", (string)$cy);
     }
@@ -322,9 +323,11 @@ class core {
      * 
      * @param \iup\ihandle $ih
      * @param array $data
+     * @param string $name
      * all the data values must be string cast
      */
-    public function matrixData($ih,array $data){
+    public function matrixData($ih,array $data,string $name='matrix'){
+        $this->setAttribute($ih, "NAME", $name);
         $numCol = count(array_keys($data));
         $numLin = count($data[array_key_first($data)]);
         $this->_matrixConfig($ih, $numCol-1, $numLin);
@@ -1001,6 +1004,10 @@ class core {
     
     public function setFunction($name,$func){
         return $this->ffi_iup->IupSetFunction($name, $func);
+    }
+    
+    public function setStrf($ih, $name, $format, ...$arg) {
+        return $this->ffi_iup->IupSetStrf($ih, $name, $format, ...$arg);
     }
 
     public function stringCompare($string_1, $string_2, $casesensitive, $lexicographic) {

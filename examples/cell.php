@@ -7,9 +7,7 @@ use iup\extra;
 use iup\cd;
 
 $iup = new core();
-
 $extra = new extra();
-
 $cd = new cd();
 
 
