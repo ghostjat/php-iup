@@ -248,7 +248,7 @@ class core {
     public function string(FFI\CData $data){
         return \FFI::string($data);
     }
-
+    
 
     protected function ImageLibOpen() {
         return $this->ffi_imgLib->IupImageLibOpen();
@@ -535,6 +535,9 @@ class core {
         return $this->ffi_iup->IupFlatSeparator();
     }
     
+    /**
+     * Fill the object
+     */
     public function fill() {
         return $this->ffi_iup->IupFill();
     }
@@ -647,6 +650,17 @@ class core {
     
     public function getClassName($ih){
         return $this->ffi_iup->IupGetClassName($ih);
+    }
+    
+    /**
+     * 
+     * @param string $classname
+     * @param string $names
+     * @param int $max_n
+     * @return type
+     */
+    public function getClassCallbacks($classname, $names, $max_n) {
+        return $this->ffi_iup->IupGetClassCallbacks($classname,$names,$max_n);
     }
     
     public function getClassType($ih){
