@@ -3,7 +3,7 @@
     "description": "PHP bindings to the IUP-Toolkit for desktop application.",
     "keywords": ["ui","php", "ffi", "iup", "gui"],
     "homepage": "https://github.com/ghostjat/php-iup",
-    "license": "Apache License Version 2.0",
+    "license": "Apache",
     "version": "0.1-alpha",
     "authors": [
         {
