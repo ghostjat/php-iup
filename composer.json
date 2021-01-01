@@ -1,5 +1,25 @@
 {
-    "name": "ghost/iup",
+    "name": "ghostjat/iup",
+    "description": "PHP bindings to the IUP-Toolkit for desktop application.",
+    "keywords": ["ui","php", "ffi", "iup", "gui"],
+    "homepage": "https://github.com/ghostjat/php-iup",
+    "license": "Apache License Version 2.0",
+    "version": "0.1-alpha",
+    "authors": [
+        {
+            "name": "Shubham Chaudhary",
+            "email": "ghost.jat@gmail.com",
+            "role": "dev"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/ghostjat/php-iup/issues?state=open",
+        "source": "https://github.com/ghostjat/php-iup"
+    },
+    "require": {
+        "php": ">=7.4.0",
+        "ext-ffi": "*"
+    },
     "autoload": {
         "psr-4": {
             "iup\\": "src"
